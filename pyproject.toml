@@ -1,0 +1,29 @@
+[project]
+name = "quicker-web"
+version = "Pre-release 0.1"
+description = "quickeR is a simple, private and covenient app "
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "nax Martínez Llorente", email = "unaxmarti2009@gmail.com" }
+]
+dependencies = [
+    "flet>=0.85.3"
+]
+
+[dependency-groups]
+dev = [
+    "flet-cli>=0.85.3",
+    "flet-desktop>=0.85.3",
+    "flet-web>=0.85.3",
+]
+
+[tool.flet]
+desktop_flavor = "light"    # Change to "full" to use flet-audio and flet-video
+product = "quicker-web"
+company = "Unax Martínez Llorente (aka ChoiceZero)"
+license = "MIT"
+license-files = ["LICENSE"]
+
+[tool.flet.app]
+path = "src"
