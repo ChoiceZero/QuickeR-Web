@@ -13,6 +13,7 @@ import PIL
 import urllib.parse
 import numpy as np
 import random
+import pyperclip
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSET_DIR = os.path.join(BASE_DIR, "assets")
@@ -23,6 +24,9 @@ ERROR_CORRECTION_MAP = {
     "Q (25%)": qrcode.constants.ERROR_CORRECT_Q,
     "H (30%)": qrcode.constants.ERROR_CORRECT_H,
 }
+
+def copy_text_to_clipboard(text):
+    pyperclip.copy(text)
 
 def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25):
     box_size = qr_obj.box_size
@@ -363,11 +367,17 @@ def main(page: Page):
 
     #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper())
 
-    def get_github_icon_by_mode():
-        if page.theme_mode == ThemeMode.DARK:
-            return Image("github-white-icon.webp",color="white",width=20,height=20)
+    def get_github_icon_by_mode(invert=False):
+        if invert:
+            if page.theme_mode == ThemeMode.DARK:
+                return Image("github-white-icon.webp",color="black",width=20,height=20)
+            else:
+                return Image("github-white-icon.webp",color="white",width=20,height=20)
         else:
-            return Image("github-white-icon.webp",color="black",width=20,height=20)
+            if page.theme_mode == ThemeMode.DARK:
+                return Image("github-white-icon.webp",color="white",width=20,height=20)
+            else:
+                return Image("github-white-icon.webp",color="black",width=20,height=20)
 
     ###LAYOUTS AND CONTROLS--------------------------------------------------------------
     ##ABOUT BOTTOM SHEET --------------------------------------------------------------
@@ -376,6 +386,7 @@ def main(page: Page):
         use_safe_area=True,
         scrollable=True,
         fullscreen=True,
+        show_drag_handle=True,
         open=False,
         on_dismiss=lambda e: clean_about_bs_up(),
         content=
@@ -396,9 +407,136 @@ def main(page: Page):
                         bgcolor=Colors.SECONDARY_CONTAINER,
                         border_radius=30,
                         width=page.width,
-                        margin=Margin.only(left=20, right=20, top=20, bottom=5)
+                        margin=Margin.only(left=20, right=20, bottom=5)
                     ),
-                    Text(value="Version information", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
+                    ExpansionTile(
+                        bgcolor=Colors.SURFACE_CONTAINER_HIGH,
+                        collapsed_bgcolor=Colors.SURFACE_CONTAINER_HIGH,
+                        margin=Margin.only(left=20, right=20, bottom=5),
+                        shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),
+                        collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),
+                        title=Text(value="Support QuickeR", size=15, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                        controls=[Column(controls=[
+                            Container(
+                                margin=Margin.only(left=10,right=10),
+                                border_radius=20,
+                                bgcolor=Colors.SECONDARY_CONTAINER,
+                                padding=20,
+                                content=Column(
+                                    controls=[
+                                        Row(controls=[
+                                            Icon(icon=Icons.PAYMENT_ROUNDED,color=Colors.WHITE),
+                                            Text(value="Donate", size=25, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                            Container(content=Text(value="ONE TIME", size=10, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),margin=Margin.only(left=5),bgcolor=Colors.TERTIARY_CONTAINER,border=Border.all(width=3, color=Colors.TERTIARY), border_radius=10, padding=5),
+                                        ]),
+                                        Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=Colors.WHITE),
+                                        Row(alignment=ft.MainAxisAlignment.CENTER,controls=[
+                                            Button(
+                                                margin=Margin.only(top=10),
+                                                content=Text(value="Buy Me a Coffee"),
+                                                icon=Icons.COFFEE_ROUNDED, 
+                                                #on_click=lambda e: asyncio.ensure_future(open_url("https://www.buymeacoffee.com/ChoiceZero","BLANK")),
+                                                style=ButtonStyle(
+                                                    shape=RoundedRectangleBorder(radius=12),
+                                                    padding=10,
+                                                    bgcolor=Colors.PRIMARY,
+                                                    color=Colors.SURFACE,
+                                                    overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                ),
+                                            ),
+                                            Button(
+                                                margin=Margin.only(top=10),
+                                                content=Text(value="GitHub Sponsors"),
+                                                icon=ft.CupertinoIcons.HEART_FILL, 
+                                                #on_click=lambda e: asyncio.ensure_future(open_url("https://www.buymeacoffee.com/ChoiceZero","BLANK")),
+                                                style=ButtonStyle(
+                                                    shape=RoundedRectangleBorder(radius=12),
+                                                    padding=10,
+                                                    bgcolor=Colors.PRIMARY,
+                                                    color=Colors.SURFACE,
+                                                    overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                ),
+                                            )
+                                        ])
+                                    ]
+                                )
+                            ),
+                            Container(
+                                border_radius=20,
+                                margin=Margin.only(left=10,right=10),
+                                bgcolor=Colors.SECONDARY_CONTAINER,
+                                padding=20,
+                                content=Column(
+                                    controls=[
+                                        Row(controls=[
+                                            Icon(icon=Icons.CODE_ROUNDED,color=Colors.WHITE),
+                                            Text(value="Contribute", size=25, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                        ]),
+                                        Text(value="Contribute code or report bugs in order to improve the project as a community effort.", size=15, color=Colors.WHITE),
+                                        Row(alignment=ft.MainAxisAlignment.CENTER,controls=[
+                                            Button(
+                                                align=Alignment.CENTER,
+                                                margin=Margin.only(top=10),
+                                                content=Text(value="QuickeR-Web"),
+                                                icon=get_github_icon_by_mode(True), 
+                                                on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
+                                                style=ButtonStyle(
+                                                    shape=RoundedRectangleBorder(radius=12),
+                                                    padding=10,
+                                                    bgcolor=Colors.PRIMARY,
+                                                    color=Colors.SURFACE,
+                                                    overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                ),
+                                            ),
+                                            Button(
+                                                content=Text(value="Report a bug"),
+                                                icon=Icons.BUG_REPORT_ROUNDED,
+                                                margin=Margin.only(top=10),
+                                                on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
+                                                style=ButtonStyle(
+                                                    shape=RoundedRectangleBorder(radius=12),
+                                                    padding=10,
+                                                    bgcolor=Colors.PRIMARY,
+                                                    color=Colors.SURFACE,
+                                                    overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                ),
+                                            )
+                                        ])   
+                                    ]
+                                )
+                            ),
+                            Container(
+                                border_radius=20,
+                                margin=Margin.only(left=10,right=10,bottom=10),
+                                bgcolor=Colors.SECONDARY_CONTAINER,
+                                padding=20,
+                                content=Column(
+                                    controls=[
+                                        Row(controls=[
+                                            Icon(icon=Icons.SHARE_ROUNDED,color=Colors.WHITE),
+                                            Text(value="Share the app", size=25, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                        ]),
+                                        Text(value="Help spread the word about the app and recommend it to others. The more users, the more interest in the project!", size=15, color=Colors.WHITE),
+                                        Button(
+                                            align=Alignment.CENTER,
+                                            content=Text(value="Copy link to clipboard"),
+                                            icon=Icons.COPY_ALL_ROUNDED,
+                                            margin=Margin.only(top=10),
+                                            on_click=lambda e: copy_text_to_clipboard("https://"),
+                                            style=ButtonStyle(
+                                                shape=RoundedRectangleBorder(radius=12),
+                                                padding=10,
+                                                bgcolor=Colors.PRIMARY,
+                                                color=Colors.SURFACE,
+                                                overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                            ),
+                                        )
+                                    ]
+                                )
+                            ),
+                        ])]
+                    ),
+                    Text(value="General information", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
                     Container(
                         width=page.width,
                         border_radius=20,
@@ -407,19 +545,127 @@ def main(page: Page):
                         bgcolor=Colors.SURFACE_CONTAINER_HIGH,
                         content=Column(controls=[
                             Row(controls=[
-                                #Icon(icon=Icons.WB_SUNNY_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Icon(icon=Icons.NUMBERS_ROUNDED, size=15, color=Colors.PRIMARY),
                                 Text(value=("Version"), size=15, color=Colors.GREY_400),
                                 Container(expand=True),
                                 Text(value="Pre Release", size=15, color=Colors.PRIMARY)
                             ]),
-                            #Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Row(controls=[
+                                Icon(icon=Icons.LIBRARY_BOOKS_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("License"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Text(value="MIT License", size=15, color=Colors.PRIMARY)
+                            ]), 
+                            Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Row(controls=[
+                                Icon(icon=Icons.PERSON_2_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Developed by"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Text(value="Unax Martinez Llorente (aka ChoiceZero).", size=15, color=Colors.WHITE)
+                            ]),
                         ])
                     ),
+                    Text(value="Links", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
+                    Container(
+                        width=page.width,
+                        border_radius=20,
+                        padding=20,
+                        margin=Margin.only(left=20, right=20, bottom=5),
+                        bgcolor=Colors.SURFACE_CONTAINER_HIGH,
+                        content=Column(controls=[
+                            Row(controls=[
+                                Icon(icon=Icons.INSERT_LINK_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Repository"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Button(
+                                    content=Text(value="QuickeR-Web"),
+                                    icon=get_github_icon_by_mode(True), 
+                                    on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
+                                    style=ButtonStyle(
+                                        shape=RoundedRectangleBorder(radius=12),
+                                        padding=10,
+                                        bgcolor=Colors.PRIMARY,
+                                        color=Colors.SURFACE,
+                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                    ),
+                                )
+                            ]),
+                            Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Row(controls=[
+                                Icon(icon=Icons.INSERT_LINK_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Bugs"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Button(
+                                    content=Text(value="Report a bug"),
+                                    icon=Icons.BUG_REPORT_ROUNDED,
+                                    on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
+                                    style=ButtonStyle(
+                                        shape=RoundedRectangleBorder(radius=12),
+                                        padding=10,
+                                        bgcolor=Colors.PRIMARY,
+                                        color=Colors.SURFACE,
+                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                    ),
+                                )
+                            ]),
+                            Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Row(controls=[
+                                Icon(icon=Icons.INSERT_LINK_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Release notes"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Button(
+                                    content=Text(value="Release notes"),
+                                    icon=Icons.NEW_RELEASES_ROUNDED,
+                                    on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web/releases","BLANK")),
+                                    style=ButtonStyle(
+                                        shape=RoundedRectangleBorder(radius=12),
+                                        padding=10,
+                                        bgcolor=Colors.PRIMARY,
+                                        color=Colors.SURFACE,
+                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                    ),
+                                )
+                            ]),
+                        ])
+                    ),
+                    Text(value="Privacy", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
+                    Container(
+                        width=page.width,
+                        border_radius=20,
+                        padding=20,
+                        margin=Margin.only(left=20, right=20, bottom=5),
+                        bgcolor=Colors.SURFACE_CONTAINER_HIGH,
+                        content=Column(controls=[
+                            Row(controls=[
+                                Icon(icon=Icons.DISABLED_VISIBLE_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Private"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Text(value="No telemetry or analytics are used", size=15, color=Colors.WHITE)  
+                            ]),
+                            Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Row(controls=[
+                                Icon(icon=Icons.EDIT_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Open source"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Text(value="Fully open source and auditable", size=15, color=Colors.WHITE)  
+                            ]),
+                            Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                            Row(controls=[
+                                Icon(icon=Icons.VERIFIED_USER_ROUNDED, size=15, color=Colors.PRIMARY),
+                                Text(value=("Personal"), size=15, color=Colors.GREY_400),
+                                Container(expand=True),
+                                Text(value="No private data is collected or stored", size=15, color=Colors.WHITE)
+                            ]),
+                        ])
+                    ),
+                    Container(width=50),    
                 ]
             )
         )   
-
     page.overlay.append(about_bs)
+
+    ##CREATE BOTTOM SHEET --------------------------------------------------------------
 
     qr_type_dropdown = Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
         DropdownOption(text="URL/Link",leading_icon=Icons.LINK_ROUNDED),
@@ -985,7 +1231,8 @@ def main(page: Page):
         style=ft.ButtonStyle(
             shape=RoundedRectangleBorder(radius=10),
             color=Colors.SURFACE_CONTAINER_LOW,
-            bgcolor=Colors.PRIMARY
+            bgcolor=Colors.PRIMARY,
+            overlay_color=Colors.ON_PRIMARY_CONTAINER
         )
     )
 
@@ -1149,6 +1396,7 @@ def main(page: Page):
         Row(controls=[
             Text(value="QuickeR",size=24,weight=ft.FontWeight.BOLD,margin=Margin(left=10)),
         ]),
+        Container(border_radius=10,bgcolor=Colors.TERTIARY_CONTAINER,content=Text(value="Web", size=11, color=Colors.WHITE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),border=Border.all(width=3,color=Colors.TERTIARY),padding=7),
         Container(expand=True),
         Row(
             alignment=ft.MainAxisAlignment.END,
@@ -1164,7 +1412,7 @@ def main(page: Page):
                 ),
                 IconButton(
                     icon=get_github_icon_by_mode(),
-                    on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR","BLANK"))
+                    on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK"))
                 ),
                 Button(
                     icon=Icons.INFO_OUTLINE_ROUNDED,
