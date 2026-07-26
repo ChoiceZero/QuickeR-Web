@@ -13,7 +13,7 @@ import PIL
 import urllib.parse
 import numpy as np
 import random
-import pyperclip
+#import pyperclip
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSET_DIR = os.path.join(BASE_DIR, "assets")
@@ -26,7 +26,8 @@ ERROR_CORRECTION_MAP = {
 }
 
 def copy_text_to_clipboard(text):
-    pyperclip.copy(text)
+    #pyperclip.copy(text)
+    pass
 
 def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25):
     box_size = qr_obj.box_size
@@ -310,6 +311,7 @@ def main(page: Page):
         elif qr_type_dropdown.value == "Text":
             return Icons.TEXT_FORMAT_ROUNDED   
 
+    #Clears the QR creation bottom sheet and resets all input fields
     def clear_dialog():
         delete_dialog = AlertDialog(
             title=Text("Discard?"),
@@ -319,7 +321,8 @@ def main(page: Page):
                 Button(icon=Icons.DELETE,bgcolor=Colors.RED_900,content="Yes", on_click=lambda e: clean_create_bs_up())],
             open=True)
         page.show_dialog(delete_dialog)
-    
+
+    #Clears the summary view and goes back to the home view, resetting all input fields
     def clear_summary():
         def clear_summary_action():
             page.pop_dialog()
@@ -336,7 +339,8 @@ def main(page: Page):
                 Button(content="No", on_click=lambda e: page.pop_dialog()),
                 Button(icon=Icons.DELETE,bgcolor=Colors.RED_900,content="Yes", on_click=lambda e: clear_summary_action())],
             open=True))
-    
+
+    #Clears the QR creation bottom sheet and resets all input fields
     def clean_create_bs_up(full_reset=False):
         if create_layout.open == True:
             create_layout.open = False
@@ -350,6 +354,7 @@ def main(page: Page):
                 item.value = ""
         page.update()
 
+    #Opens the about bottom sheet
     def open_about_bs():
         async def _open_about():
             if about_bs not in page.overlay:
@@ -359,14 +364,14 @@ def main(page: Page):
             about_bs.open = True
             page.update()
         page.run_task(_open_about)
-    
+
+    #Closes the about bottom sheet
     def clean_about_bs_up():
         if about_bs.open == True:
             about_bs.open = False
         page.update()   
 
-    #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper())
-
+    #Sets the GitHub icon color based on the current theme mode and whether it should be inverted
     def get_github_icon_by_mode(invert=False):
         if invert:
             if page.theme_mode == ThemeMode.DARK:
@@ -380,6 +385,10 @@ def main(page: Page):
                 return Image("github-white-icon.webp",color="black",width=20,height=20)
 
     ###LAYOUTS AND CONTROLS--------------------------------------------------------------
+    ##UNUSED FOR THE MOMENT
+
+    #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper())
+
     ##ABOUT BOTTOM SHEET --------------------------------------------------------------
     about_bs = BottomSheet(
         draggable=True,
@@ -659,6 +668,8 @@ def main(page: Page):
                             ]),
                         ])
                     ),
+                    Row(alignment=ft.MainAxisAlignment.CENTER,controls=[Text(value="Made with ❤️ in Spain.", size=15, color=Colors.GREY_400)]),
+                    Text(value="© 2026 Unax Martinez Llorente.", size=15, color=Colors.GREY_400),
                     Container(width=50),    
                 ]
             )
