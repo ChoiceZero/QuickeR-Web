@@ -29,14 +29,30 @@ def copy_text_to_clipboard(text):
     #pyperclip.copy(text)
     pass
 
-def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25):
+def hex_to_rgba(color_str):
+    if color_str.startswith("#"):
+        c = color_str.lstrip("#")
+        r, g, b = int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16)
+        return (r, g, b, 255)
+    else:   
+        return PIL.ImageColor.getcolor(color_str, "RGBA")
+
+def normalize_hex(color_str):
+    if color_str.startswith("#"):
+        c = color_str.lstrip("#")
+        if len(c) == 8:  # AARRGGBB
+            c = c[2:]
+        return "#" + c
+    else:
+        r, g, b = PIL.ImageColor.getcolor(color_str, "RGB")
+        return "#{:02x}{:02x}{:02x}".format(r, g, b)
+
+def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25, bg_color=(255, 255, 255, 255)):
     box_size = qr_obj.box_size
     border = qr_obj.border
-    modules_count = len(qr_obj.get_matrix())  # número de módulos por lado (sin contar borde)
+    modules_count = len(qr_obj.get_matrix())
 
-    # cuántos módulos puede cubrir el logo como máximo, sin pasarse del ratio permitido
     max_logo_modules = int(modules_count * max_module_ratio)
-    # forzar número impar para que quede perfectamente centrado en un módulo central
     if max_logo_modules % 2 == 0:
         max_logo_modules -= 1
     max_logo_modules = max(max_logo_modules, 1)
@@ -48,14 +64,18 @@ def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25):
 
     qr_w, qr_h = pil_img.size
 
-    # posición alineada a la cuadrícula: calculamos en unidades de módulo, no en píxeles sueltos
-    total_modules_with_border = modules_count + border * 2
-    center_module = total_modules_with_border // 2
-    start_module = center_module - max_logo_modules // 2
+    # centrado directo en píxeles (evita desalineado por redondeo de módulos)
+    pos_x = (qr_w - logo_size_px) // 2
+    pos_y = (qr_h - logo_size_px) // 2
 
-    pos_x = start_module * box_size
-    pos_y = start_module * box_size
+    pil_img = pil_img.convert("RGBA")
 
+    # fondo opaco detrás del logo, para que no se vean los módulos del QR
+    # a través de zonas transparentes del PNG del logo
+    backdrop = PIL.Image.new("RGBA", (logo_size_px, logo_size_px), bg_color)
+    pil_img.paste(backdrop, (pos_x, pos_y))
+
+    # ahora el logo encima, usando su propio alfa como máscara
     pil_img.paste(logo, (pos_x, pos_y), logo)
     return pil_img
 
@@ -129,6 +149,21 @@ def main(page: Page):
         page.update()
 
     ###MAIN FUNCTIONS--------------------------------------------------------------
+    #Checks contrast between the two chosen colors and shows a warning if it's too low for reliable scanning
+    def check_qr_contrast(fill, back):
+        try:
+            f_hex = normalize_hex(fill)
+            b_hex = normalize_hex(back)
+            ratio = contrast_ratio(f_hex, b_hex)
+        except Exception:
+            return
+        if ratio < 2.0:
+            return 1
+        elif ratio < 2.5:
+            return 2
+        else:
+            return False
+
     #Generates a QR code based on the input and displays it in the preview and summary area
     def display_preview_qr(url, qr_color_primary, qr_color_secondary, error_correct):
         preview_qr_area.controls.clear()
@@ -163,7 +198,9 @@ def main(page: Page):
                 qr_obj, pil_img = build_qr(fill_color, back_color)
 
         if logo_image_path["path"]:
-            pil_img = add_logo_aligned_to_grid(pil_img, logo_image_path["path"], qr_obj, max_module_ratio=0.22)
+            pil_img = add_logo_aligned_to_grid(pil_img, logo_image_path["path"], qr_obj, max_module_ratio=0.22, bg_color=hex_to_rgba(qr_color_secondary))
+
+        check_qr_contrast(qr_color_primary, qr_color_secondary)
 
         pil_img = pil_img.convert("RGB")
         last_qr_image["img"] = pil_img
@@ -181,6 +218,14 @@ def main(page: Page):
 
     #Shows a dialog confirming the download and starts the download process, besides offering retries
     def show_download_confirm_dialog():
+        if not filename_textfield.value:
+            page.show_dialog(AlertDialog(
+                title=Text("Missing filename"),
+                content=Text("Please enter a filename for the QR code."),
+                actions=[TextButton("OK", on_click=lambda e: page.pop_dialog())],
+                actions_alignment="end",
+            ))
+        else:
             page.show_dialog(AlertDialog(
                 title=Text("Download started!"),
                 content=Text(f"The qr code should download automatically.\n If it doesn't, please retry with the button below."),
@@ -194,23 +239,15 @@ def main(page: Page):
     
     #Downloads the qrs
     async def download_qr():
-        if not filename_textfield.value:
-            page.show_dialog(AlertDialog(
-                title=Text("Missing filename"),
-                content=Text("Please enter a filename for the QR code."),
-                actions=[TextButton("OK", on_click=lambda e: page.pop_dialog())],
-                actions_alignment="end",
-            ))
-        else:
-            if last_qr_image["img"] is None:
-                return
-            buf = BytesIO()
-            last_qr_image["img"].save(buf, format="PNG")
-            await file_saver.save_file(
-                file_name=filename_textfield.value + ".png",
-                allowed_extensions=["png"],
-                src_bytes=buf.getvalue(),
-            )
+        if last_qr_image["img"] is None:
+            return
+        buf = BytesIO()
+        last_qr_image["img"].save(buf, format="PNG")
+        await file_saver.save_file(
+            file_name=filename_textfield.value + ".png",
+            allowed_extensions=["png"],
+            src_bytes=buf.getvalue(),
+        )
     
     #Opens the QR creation bottom sheet
     def qr_creator_open():
@@ -268,13 +305,36 @@ def main(page: Page):
 
     #Transitions to summary view
     def qr_create_triggered():
-        if input_checker():
+        def perform_transition():
             type_icon.icon = get_logo()
             get_content()
             if create_button in overview.controls:
                 overview.controls.remove(create_button)
                 overview.controls.append(summary_visual)
             clean_create_bs_up()
+        if input_checker():
+            if check_qr_contrast(qr_color_scheme_primary.color, qr_color_scheme_secondary.color) == 1:
+                page.show_dialog(AlertDialog(
+                    title=Text("Low contrast"),
+                    content=Text("The selected colors have low contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
+                    actions=[
+                        TextButton("Cancel", on_click=lambda e: page.pop_dialog()),
+                        TextButton("Continue", on_click=lambda e: [page.pop_dialog(), perform_transition()]),
+                    ],
+                    actions_alignment="end",
+                ))
+            elif check_qr_contrast(qr_color_scheme_primary.color, qr_color_scheme_secondary.color) == 2:
+                page.show_dialog(AlertDialog(
+                    title=Text("Moderate contrast"),
+                    content=Text("The selected colors have moderate contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
+                    actions=[
+                        TextButton("Cancel", on_click=lambda e: page.pop_dialog()),
+                        TextButton("Continue", on_click=lambda e: [page.pop_dialog(), perform_transition()]),
+                    ],
+                    actions_alignment="end",
+                ))
+            else:
+                perform_transition()
 
     #Picks the logo for the QR code and updates the preview
     async def pick_logo():
@@ -1026,8 +1086,8 @@ def main(page: Page):
                     ]),
                     Divider(color="grey"),
                     Text(value=("Color scheme"), size=20, color=Colors.PRIMARY),
-                    ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary),
-                    ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary),
+                    ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
+                    ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
                 ])
             ),
             Container(height=50)
