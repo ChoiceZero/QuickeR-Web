@@ -121,6 +121,7 @@ def main(page: Page):
     page.fonts = {
         "MaterialRounded":"/GoogleSansFlex.ttf"
     }
+    page.update()
     page.theme_mode = ThemeMode.DARK
 
     #Picks a random theme color and a font
