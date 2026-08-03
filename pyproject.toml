@@ -1,29 +1,48 @@
 [project]
-name = "quicker-web"
-version = "Pre-release 0.1"
-description = "quickeR is a simple, private and covenient app "
+name = "QuickeR-Web"
+version = "1.0"
+license = { text = "MIT" }
+description = ""
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    { name = "nax Martínez Llorente", email = "unaxmarti2009@gmail.com" }
+    { name = "Unax Martinez Llorente (ChoiceZero)", email = "unaxmarti2009@gmail.com" }
 ]
 dependencies = [
-    "flet>=0.85.3"
+    "flet>=0.85.2",
+    "flet>=0.86.2",
+    "flet_color_pickers>=0.86.2",
+    "numpy>=2.5.1",
+    "opencv_python>=5.0.0.93",
+    "Pillow>=12.3.0",
+    "qrcode>=8.2"
 ]
 
 [dependency-groups]
 dev = [
-    "flet-cli>=0.85.3",
-    "flet-desktop>=0.85.3",
-    "flet-web>=0.85.3",
+    "flet-cli>=0.85.2",
+    "flet-desktop>=0.85.2",
+    "flet-web>=0.85.2",
+    #"watchdog>=4.0.0"
 ]
 
 [tool.flet]
 desktop_flavor = "light"    # Change to "full" to use flet-audio and flet-video
 product = "quicker-web"
-company = "Unax Martínez Llorente (aka ChoiceZero)"
-license = "MIT"
-license-files = ["LICENSE"]
+company = "Unax Martinez Llorente"
+copyright = "MIT License"
 
 [tool.flet.app]
 path = "src"
+
+[tool.flet.package]
+exclude = [
+    ".venv",          
+    "venv",
+    ".flet",
+    "__pycache__",    
+    "*.pyc", 
+    "README.md",
+    ".gitignore",   
+    ".git",         
+]

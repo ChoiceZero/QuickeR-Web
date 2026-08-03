@@ -1,6 +1,6 @@
-flet==0.85.3
-flet_color_pickers==0.85.3
+flet==0.86.2
+flet_color_pickers==0.86.2
 numpy==2.5.1
-opencv_python==4.13.0.92
+opencv_python==5.0.0.93
 Pillow==12.3.0
 qrcode==8.2
