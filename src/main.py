@@ -1,6 +1,5 @@
 import os
 import qrcode
-import cv2 
 import flet as ft
 from flet import DateRangePicker, TimePicker,ExpansionTile,Dropdown,DropdownOption,ThemeMode,Theme,Page,RoundedRectangleBorder,ButtonStyle,Divider,Stack,BottomSheet,Border,Margin,Icon,Icons, IconButton, Container, Image, TextField, Text, Row, Column, Colors, ScrollMode, AlertDialog, FilePicker, TextButton, Alignment, Button, IconButton
 from flet_color_pickers import MaterialPicker
@@ -181,24 +180,8 @@ def main(page: Page):
             img = q.make_image(fill_color=fill, back_color=back).convert("RGBA")
             return q, img
 
-        def is_readable(img):
-            arr = np.array(img.convert("RGB"), dtype=np.uint8)
-            arr = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
-            if arr.ndim != 3 or arr.shape[2] != 3:
-                return False
-            data, _, _ = cv2.QRCodeDetector().detectAndDecode(arr)
-            return bool(data)
-
         fill_color, back_color = qr_color_primary, qr_color_secondary
         qr_obj, pil_img = build_qr(fill_color, back_color)
-
-        if not is_readable(pil_img) and str(url):
-            fill_color, back_color = back_color, fill_color
-            qr_obj, pil_img = build_qr(fill_color, back_color)
-
-            if not is_readable(pil_img):
-                fill_color, back_color = "black", "white"
-                qr_obj, pil_img = build_qr(fill_color, back_color)
 
         if logo_image_path["path"]:
             pil_img = add_logo_aligned_to_grid(pil_img, logo_image_path["path"], qr_obj, max_module_ratio=0.22, bg_color=hex_to_rgba(qr_color_secondary))
@@ -1085,7 +1068,7 @@ def main(page: Page):
                         content=Row(controls=[
                             Icon(icon=Icons.ERROR_OUTLINE_ROUNDED,color=Colors.WHITE),
                             Container(expand=True,content=Text(
-                                value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, it is highly reccomended that H level error correction is used.",
+                                value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, it is highly recommended that H level error correction is used.",
                                 size=16,
                                 color=Colors.WHITE
                             )),
@@ -1102,6 +1085,20 @@ def main(page: Page):
                     ]),
                     Divider(color="grey"),
                     Text(value=("Color scheme"), size=20, color=Colors.PRIMARY),
+                    Container(
+                        content=Row(controls=[
+                            Icon(icon=Icons.WARNING_AMBER_ROUNDED,color=Colors.WHITE),
+                            Container(expand=True,content=Text(
+                                value="Due to c based tools not being supported on WASM, color checking is not available. Please be sensible with the colors you choose and ensure that the foreground color is always clearly darker.",
+                                size=16,
+                                color=Colors.WHITE
+                            )),
+                            ],
+                        ),
+                        padding=15,
+                        bgcolor=Colors.ORANGE_500,border_radius=30,
+                        margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                    ),
                     ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
                     ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
                 ])

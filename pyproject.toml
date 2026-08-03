@@ -12,7 +12,6 @@ dependencies = [
     "flet>=0.85.2",
     "flet_color_pickers>=0.85.2",
     "numpy>=2.4.3",
-    "opencv_python",
     "Pillow>=12.2.0",
     "qrcode>=8.2"
 ]
