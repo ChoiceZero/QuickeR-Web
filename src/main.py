@@ -119,7 +119,7 @@ def main(page: Page):
     
     ##THEMING--------------------------------------------------------------
     page.fonts = {
-        "MaterialRounded":"/GoogleSansFlex.ttf"
+        "MaterialRounded":"GoogleSansFlex.ttf"
     }
     page.update()
     page.theme_mode = ThemeMode.DARK
