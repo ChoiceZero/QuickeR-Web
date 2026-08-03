@@ -11,8 +11,6 @@ concurrency:
 
 env:
   UV_PYTHON: 3.12
-
-  # https://flet.dev/docs/reference/environment-variables
   FLET_CLI_NO_RICH_OUTPUT: 1
 
 jobs:
@@ -26,6 +24,13 @@ jobs:
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v6
+
+      - name: Inject version into app
+        shell: bash
+        run: |
+          VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
+          echo "App version: $VERSION"
+          sed -i "s/__VERSION__/$VERSION/" src/main.py
 
       - name: Build app
         shell: bash

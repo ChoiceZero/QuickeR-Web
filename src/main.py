@@ -1,16 +1,19 @@
 import os
 import qrcode
 import flet as ft
-from flet import DateRangePicker, TimePicker,ExpansionTile,Dropdown,DropdownOption,ThemeMode,Theme,Page,RoundedRectangleBorder,ButtonStyle,Divider,Stack,BottomSheet,Border,Margin,Icon,Icons, IconButton, Container, Image, TextField, Text, Row, Column, Colors, ScrollMode, AlertDialog, FilePicker, TextButton, Alignment, Button, IconButton
+from flet import (
+    DateRangePicker, TimePicker,ExpansionTile,Dropdown,DropdownOption,ThemeMode,Theme,Page,RoundedRectangleBorder,
+    ButtonStyle,Divider,BottomSheet,Border,Margin,Icon,Icons, IconButton, Container, Image, TextField, Text, Row, 
+    Column, Colors, ScrollMode, AlertDialog, FilePicker, TextButton, Alignment, Button, IconButton, TextStyle, FontWeight,
+    RoundedRectangleBorder, BorderSide, MainAxisAlignment, CrossAxisAlignment, Switch
+)
 from flet_color_pickers import MaterialPicker
 import base64
 from io import BytesIO  
 import asyncio
 import PIL 
 import urllib.parse
-import numpy as np
 import random
-#import pyperclip
 import datetime
 
 #Constants
@@ -22,16 +25,13 @@ ERROR_CORRECTION_MAP = {
     "Q (25%)": qrcode.constants.ERROR_CORRECT_Q,
     "H (30%)": qrcode.constants.ERROR_CORRECT_H,
 }
+APP_VERSION = "__VERSION__"
 
 #Helper functions (take an input and return a value)
 def normalize_picker_date(dt):
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
     return dt.astimezone().date()
-
-def copy_text_to_clipboard(text):
-    #pyperclip.copy(text)
-    pass
 
 def hex_to_rgba(color_str):
     if color_str.startswith("#"):
@@ -119,8 +119,7 @@ def main(page: Page):
     
     ##THEMING--------------------------------------------------------------
     page.fonts = {
-        "AndroidDefault": "/GoogleSansFlex(1).ttf",
-        "Header":"/GoogleSansFlex(2).ttf"
+        "MaterialRounded":"/GoogleSansFlex.ttf"
     }
     page.theme_mode = ThemeMode.DARK
 
@@ -138,7 +137,7 @@ def main(page: Page):
             #Colors.GREY_100
         ]
         selected_theme = theme_colors[random.randint(0,(len(theme_colors)-1))]
-        page.theme = Theme(color_scheme_seed=selected_theme, font_family="Header")
+        page.theme = Theme(color_scheme_seed=selected_theme, font_family="MaterialRounded")
         page.update()
     theme_selector()
 
@@ -194,7 +193,7 @@ def main(page: Page):
         pil_img.save(archivo_temporal_ram, format="PNG")
         base64_puro = base64.b64encode(archivo_temporal_ram.getvalue()).decode("utf-8")
         uri_base64 = f"data:image/png;base64,{base64_puro}"
-        preview_qr = ft.Image(src=uri_base64, width=200, height=200, border_radius=10)
+        preview_qr = Image(src=uri_base64, width=200, height=200, border_radius=10)
         preview_qr_on_summary.content = preview_qr
         preview_qr_area.controls.append(preview_qr)
         page.update()
@@ -288,6 +287,16 @@ def main(page: Page):
                 alert_empty()
                 return False
         return True
+
+    #Copies text to the clipboard
+    async def copy_text_to_clipboard(text):
+        await ft.Clipboard().set(text)
+        page.show_dialog(AlertDialog(
+            title=Text("Text copied"),
+            content=Text("The text has been copied to the clipboard."),
+            actions=[TextButton("OK", on_click=lambda e: page.pop_dialog())],
+            actions_alignment="end",
+        ))
 
     #Transitions to summary view
     def qr_create_triggered():
@@ -455,10 +464,10 @@ def main(page: Page):
                     Container(
                         content=Column(controls=[
                             Row(alignment="center",controls=[
-                                Text(value="QuickeR", size=40, align=Alignment.CENTER, color=Colors.WHITE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
-                                Container(border_radius=10,bgcolor=Colors.TERTIARY_CONTAINER,content=Text(value="Web", size=15, color=Colors.WHITE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),margin=Margin.only(left=5),border=Border.all(width=3,color=Colors.TERTIARY),padding=10)
+                                Text(value="QuickeR", size=40, align=Alignment.CENTER, color=Colors.WHITE, style=TextStyle(weight=FontWeight.BOLD)),
+                                Container(border_radius=10,bgcolor=Colors.TERTIARY_CONTAINER,content=Text(value="Web", size=15, color=Colors.WHITE, style=TextStyle(weight=FontWeight.BOLD)),margin=Margin.only(left=5),border=Border.all(width=3,color=Colors.TERTIARY),padding=10)
                             ]),
-                            Text(value="Quick | Simple | Private | Open Source", size=15, align=Alignment.CENTER, color=Colors.GREY_400, style=ft.TextStyle(weight=ft.FontWeight.W_200))
+                            Text(value="Quick | Simple | Private | Open Source", size=15, align=Alignment.CENTER, color=Colors.GREY_400, style=TextStyle(weight=FontWeight.W_200))
                         ]),
                         padding=20,
                         bgcolor=Colors.SECONDARY_CONTAINER,
@@ -470,9 +479,9 @@ def main(page: Page):
                         bgcolor=Colors.SURFACE_CONTAINER_HIGH,
                         collapsed_bgcolor=Colors.SURFACE_CONTAINER_HIGH,
                         margin=Margin.only(left=20, right=20, bottom=5),
-                        shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),
-                        collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),
-                        title=Text(value="Support QuickeR", size=15, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                        shape=RoundedRectangleBorder(side=BorderSide(width=0), radius=20),
+                        collapsed_shape=RoundedRectangleBorder(side=BorderSide(width=0), radius=20),
+                        title=Text(value="Support QuickeR", size=15, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
                         controls=[Column(controls=[
                             Container(
                                 margin=Margin.only(left=10,right=10),
@@ -483,11 +492,11 @@ def main(page: Page):
                                     controls=[
                                         Row(controls=[
                                             Icon(icon=Icons.PAYMENT_ROUNDED,color=Colors.WHITE),
-                                            Text(value="Donate", size=25, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
-                                            Container(content=Text(value="ONE TIME", size=10, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),margin=Margin.only(left=5),bgcolor=Colors.TERTIARY_CONTAINER,border=Border.all(width=3, color=Colors.TERTIARY), border_radius=10, padding=5),
+                                            Text(value="Donate", size=25, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
+                                            Container(content=Text(value="ONE TIME", size=10, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),margin=Margin.only(left=5),bgcolor=Colors.TERTIARY_CONTAINER,border=Border.all(width=3, color=Colors.TERTIARY), border_radius=10, padding=5),
                                         ]),
                                         Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=Colors.WHITE),
-                                        Row(alignment=ft.MainAxisAlignment.CENTER,controls=[
+                                        Row(alignment=MainAxisAlignment.CENTER,controls=[
                                             Button(
                                                 margin=Margin.only(top=10),
                                                 content=Text(value="Buy Me a Coffee"),
@@ -527,10 +536,10 @@ def main(page: Page):
                                     controls=[
                                         Row(controls=[
                                             Icon(icon=Icons.CODE_ROUNDED,color=Colors.WHITE),
-                                            Text(value="Contribute", size=25, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                            Text(value="Contribute", size=25, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
                                         ]),
                                         Text(value="Contribute code or report bugs in order to improve the project as a community effort.", size=15, color=Colors.WHITE),
-                                        Row(alignment=ft.MainAxisAlignment.CENTER,controls=[
+                                        Row(alignment=MainAxisAlignment.CENTER,controls=[
                                             Button(
                                                 align=Alignment.CENTER,
                                                 margin=Margin.only(top=10),
@@ -549,7 +558,7 @@ def main(page: Page):
                                                 content=Text(value="Report a bug"),
                                                 icon=Icons.BUG_REPORT_ROUNDED,
                                                 margin=Margin.only(top=10),
-                                                on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
+                                                on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web/issues","BLANK")),
                                                 style=ButtonStyle(
                                                     shape=RoundedRectangleBorder(radius=12),
                                                     padding=10,
@@ -571,7 +580,7 @@ def main(page: Page):
                                     controls=[
                                         Row(controls=[
                                             Icon(icon=Icons.SHARE_ROUNDED,color=Colors.WHITE),
-                                            Text(value="Share the app", size=25, color=Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                            Text(value="Share the app", size=25, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
                                         ]),
                                         Text(value="Help spread the word about the app and recommend it to others. The more users, the more interest in the project!", size=15, color=Colors.WHITE),
                                         Button(
@@ -579,7 +588,7 @@ def main(page: Page):
                                             content=Text(value="Copy link to clipboard"),
                                             icon=Icons.COPY_ALL_ROUNDED,
                                             margin=Margin.only(top=10),
-                                            on_click=lambda e: copy_text_to_clipboard("https://"),
+                                            on_click=lambda e: asyncio.ensure_future(copy_text_to_clipboard("https://choicezero.github.io/QuickeR-Web/")),
                                             style=ButtonStyle(
                                                 shape=RoundedRectangleBorder(radius=12),
                                                 padding=10,
@@ -605,7 +614,7 @@ def main(page: Page):
                                 Icon(icon=Icons.NUMBERS_ROUNDED, size=15, color=Colors.PRIMARY),
                                 Text(value=("Version"), size=15, color=Colors.GREY_400),
                                 Container(expand=True),
-                                Text(value="Pre Release", size=15, color=Colors.PRIMARY)
+                                Text(value=APP_VERSION, size=15, color=Colors.PRIMARY)
                             ]),
                             Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
                             Row(controls=[
@@ -716,7 +725,7 @@ def main(page: Page):
                             ]),
                         ])
                     ),
-                    Row(alignment=ft.MainAxisAlignment.CENTER,controls=[Text(value="Made with ❤️ in Spain.", size=15, color=Colors.GREY_400)]),
+                    Row(alignment=MainAxisAlignment.CENTER,controls=[Text(value="Made with ❤️ in Spain.", size=15, color=Colors.GREY_400)]),
                     Text(value="© 2026 Unax Martinez Llorente.", size=15, color=Colors.GREY_400),
                     Container(width=50),    
                 ]
@@ -818,7 +827,7 @@ def main(page: Page):
 
     # Email
     email_address = TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
-    email_adv_checkbox = ft.Switch(value=False, on_change=lambda e: email_checkbox_changed())
+    email_adv_checkbox = Switch(value=False, on_change=lambda e: email_checkbox_changed())
     email_general_content=Column(visible=False,controls=[
         Row(controls=[
             Icon(icon=Icons.MAIL_ROUNDED),

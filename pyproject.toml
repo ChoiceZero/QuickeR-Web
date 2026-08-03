@@ -1,6 +1,6 @@
 [project]
 name = "QuickeR-Web"
-version = "1.0"
+version = "1.01 Hotfix"
 license = { text = "MIT" }
 description = ""
 readme = "README.md"
@@ -11,7 +11,6 @@ authors = [
 dependencies = [
     "flet>=0.85.2",
     "flet_color_pickers>=0.85.2",
-    "numpy>=2.4.3",
     "Pillow>=12.2.0",
     "qrcode>=8.2"
 ]
