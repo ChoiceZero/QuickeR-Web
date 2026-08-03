@@ -1,11 +1,9 @@
-from cProfile import label
-from importlib.resources import files
 import os
 import qrcode
 import cv2 
 import flet as ft
 from flet import DateRangePicker, TimePicker,ExpansionTile,Dropdown,DropdownOption,ThemeMode,Theme,Page,RoundedRectangleBorder,ButtonStyle,Divider,Stack,BottomSheet,Border,Margin,Icon,Icons, IconButton, Container, Image, TextField, Text, Row, Column, Colors, ScrollMode, AlertDialog, FilePicker, TextButton, Alignment, Button, IconButton
-from flet_color_pickers import MaterialPicker,ColorPicker
+from flet_color_pickers import MaterialPicker
 import base64
 from io import BytesIO  
 import asyncio
@@ -14,16 +12,23 @@ import urllib.parse
 import numpy as np
 import random
 #import pyperclip
+import datetime
 
+#Constants
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSET_DIR = os.path.join(BASE_DIR, "assets")
-
 ERROR_CORRECTION_MAP = {
     "L (7%)": qrcode.constants.ERROR_CORRECT_L,
     "M (15%)": qrcode.constants.ERROR_CORRECT_M,
     "Q (25%)": qrcode.constants.ERROR_CORRECT_Q,
     "H (30%)": qrcode.constants.ERROR_CORRECT_H,
 }
+
+#Helper functions (take an input and return a value)
+def normalize_picker_date(dt):
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt.astimezone().date()
 
 def copy_text_to_clipboard(text):
     #pyperclip.copy(text)
@@ -108,12 +113,10 @@ def main(page: Page):
     page.title = "QuickeR"
     
     #some variables
-    preview_qr = ""
     last_qr_image = {"img": None}
     _debounce_task = {"task": None}
     logo_image_path = {"path": None}
     logo_picker_ref = {"instance": None}
-
     
     ##THEMING--------------------------------------------------------------
     page.fonts = {
@@ -294,7 +297,7 @@ def main(page: Page):
                 alert_empty()
                 return False
         elif qr_type_dropdown.value == "Event":
-            if not event_title.value or not event_location.value or not date_picker.value or not start_time_picker.value or not end_time_picker.value:
+            if not event_title.value or not event_location.value or not date_picker.start_value or not date_picker.end_value or not start_time_picker.value or not end_time_picker.value:
                 alert_empty()
                 return False
         else:  
@@ -445,9 +448,11 @@ def main(page: Page):
                 return Image("github-white-icon.webp",color="black",width=20,height=20)
 
     ###LAYOUTS AND CONTROLS--------------------------------------------------------------
-    ##UNUSED FOR THE MOMENT
 
-    #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper())
+    #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper()) -> unused
+
+    ##MAIN LAYOUT --------------------------------------------------------------
+
 
     ##ABOUT BOTTOM SHEET --------------------------------------------------------------
     about_bs = BottomSheet(
@@ -737,7 +742,6 @@ def main(page: Page):
     page.overlay.append(about_bs)
 
     ##CREATE BOTTOM SHEET --------------------------------------------------------------
-
     qr_type_dropdown = Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
         DropdownOption(text="URL/Link",leading_icon=Icons.LINK_ROUNDED),
         DropdownOption(text="Text",leading_icon=Icons.TEXT_FIELDS_ROUNDED),
@@ -748,12 +752,14 @@ def main(page: Page):
         DropdownOption(text="SMS",leading_icon=Icons.MESSAGE_ROUNDED),
         DropdownOption(text="Event",leading_icon=Icons.STAR_BORDER_ROUNDED),
     ])
-    
+
+    #URL
     url_protocol_dropdown = Dropdown(value="https://",border_width=0,options=[
         DropdownOption(text="https://"),
         DropdownOption(text="http://"),
         ])
 
+    #WIFI
     wifi_name= TextField(
         expand=True,
         border_width=0,
@@ -827,12 +833,9 @@ def main(page: Page):
         wifi_password_setting
     ])
 
-    #EMAIL QR TYPE------------------------------------------------------------------------------
-    #General elements
-
+    # Email
     email_address = TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
     email_adv_checkbox = ft.Switch(value=False, on_change=lambda e: email_checkbox_changed())
-
     email_general_content=Column(visible=False,controls=[
         Row(controls=[
             Icon(icon=Icons.MAIL_ROUNDED),
@@ -852,7 +855,7 @@ def main(page: Page):
         ]),
     ])
 
-    #On checkbox changed
+    # -> On checkbox changed
     def email_checkbox_changed():
         if email_adv_checkbox.value:
             email_adv_content.visible = True
@@ -862,7 +865,6 @@ def main(page: Page):
 
     email_subject = TextField(expand=True, border_width=0, label="Subject", on_change=lambda e: prop_changed())
     email_body = TextField(expand=True, border_width=0, label="Body", multiline=True, on_change=lambda e: prop_changed())
-
     email_adv_content = Column(visible=False, controls=[
         Row(controls=[Icon(icon=Icons.SUBJECT_ROUNDED), Text(value="Subject", size=20), Container(expand=True)]),
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_subject),
@@ -871,17 +873,7 @@ def main(page: Page):
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_body),
     ])
 
-    #PHONE QR TYPE------------------------------------------------------------------------------
-    #General elements
-
-    phone_number = TextField(
-        expand=True,
-        border_width=0,
-        label="Enter address",
-        hint_text="",
-        keyboard_type=ft.KeyboardType.NUMBER,
-        on_change=lambda e: prop_changed())
-    
+    # Phone
     phone_prefix = TextField(
         border_width=0,
         label="",
@@ -890,8 +882,16 @@ def main(page: Page):
         max_length=4,
         counter=Container(),
         keyboard_type=ft.KeyboardType.NUMBER,
-        on_change=lambda e: prop_changed())
-
+        on_change=lambda e: prop_changed()
+    )
+    phone_number = TextField(
+        expand=True,
+        border_width=0,
+        label="Enter address",
+        hint_text="",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        on_change=lambda e: prop_changed()
+    )   
     phone_general_content=Column(visible=False,controls=[
         Row(controls=[
             Icon(icon=Icons.CALL_ROUNDED),
@@ -929,8 +929,13 @@ def main(page: Page):
         keyboard_type=ft.KeyboardType.NUMBER,
         on_change=lambda e: prop_changed()
     )
-
-    sms_number = TextField(expand=True, border_width=0, label="Enter phone number", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
+    sms_number = TextField(
+        expand=True,
+        border_width=0,
+        label="Enter phone number",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        on_change=lambda e: prop_changed()
+    )
     sms_message = TextField(expand=True, border_width=0, label="Enter message", multiline=True, on_change=lambda e: prop_changed())
 
     sms_general_content = Column(visible=False, controls=[
@@ -949,7 +954,6 @@ def main(page: Page):
     ])
 
     # Location
-
     location_lat = TextField(expand=True, border_width=0, label="Latitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
     location_lng = TextField(expand=True, border_width=0, label="Longitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
 
@@ -961,13 +965,13 @@ def main(page: Page):
         ]),
     ])
 
-    # Event (vCalendar/iCal básico)
+    # Event (vCalendar/iCal)
     event_title = TextField(expand=True, border_width=0, label="Event title", on_change=lambda e: prop_changed())
     event_location = TextField(expand=True, border_width=0, label="Location", on_change=lambda e: prop_changed())
 
-    date_picker = DateRangePicker(open=False, on_change=lambda e: extract_date_info())
-    start_time_picker = TimePicker(open=False, on_change=lambda e: extract_date_info())
-    end_time_picker = TimePicker(open=False, on_change=lambda e: extract_date_info())
+    date_picker = DateRangePicker(open=False, on_change=lambda e: prop_changed())
+    start_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
+    end_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
     
     page.overlay.append(date_picker)
     page.overlay.append(start_time_picker)
@@ -985,26 +989,38 @@ def main(page: Page):
         end_time_picker.open = True
         page.update()
 
-    date_picker_button = IconButton(icon=Icons.CALENDAR_MONTH_ROUNDED, on_click=lambda e: open_date_picker(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick date range")
-    start_time_picker_button = IconButton(icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_start_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick start time")
-    end_time_picker_button = IconButton(icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
+    date_picker_button = Button(content="Date period",icon=Icons.CALENDAR_MONTH_ROUNDED, on_click=lambda e: open_date_picker(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick date range")
+    start_time_picker_button = Button(content="Start time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_start_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick start time")
+    end_time_picker_button = Button(content="End time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
 
-    event_general_content = Container(visible=False,padding=20,border_radius=20,bgcolor=Colors.SECONDARY_CONTAINER, content=Column(controls=[Text(value="coming soon!", size=20, color=Colors.WHITE)]))
-    
-    #Column(visible=False, controls=[
-    #    Row(controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20), Container(expand=True)]),
-    #    Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_title),
-    #    Divider(color="grey"),
-    #    Row(controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20), Container(expand=True)]),
-    #    Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location),
-    #    Divider(color="grey"),
-    #    Row(controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20), Container(expand=True)]),
-    #    Row(controls=[
-    #        date_picker_button,
-    #        start_time_picker_button,
-    #        end_time_picker_button,
-    #    ]),
-    #])
+    event_general_content = Column(visible=False, controls=[
+        Row(controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20), Container(expand=True)]),
+        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_title),
+        Divider(color="grey"),
+        Row(controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20), Container(expand=True)]),
+        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location),
+        Divider(color="grey"),
+        Row(controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20), Container(expand=True)]),
+        Container(
+            content=Row(controls=[
+                Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
+                Container(expand=True,content=Text(
+                    value="Please change all fields below here!",
+                    size=16,
+                    color=Colors.WHITE
+                )),
+                ],
+            ),
+            padding=15,
+            bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
+            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+        ),
+        Row(controls=[
+            date_picker_button,
+            start_time_picker_button,
+            end_time_picker_button,
+        ]),
+    ])
     
     qr_url_input_field = TextField(expand=True,border_width=0,label="Enter URL or text",on_change=lambda e: prop_changed())
     error_correction_dropdown = Dropdown(value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
@@ -1094,15 +1110,6 @@ def main(page: Page):
         ]),
     )
 
-    #get_date = {"dtstart_str": f"{date_picker.start_value.strftime('%Y%m%d')}T{start_time_picker.value.strftime('%H%M%S')}", 
-    #            "dtend_str": f"{date_picker.end_value.strftime('%Y%m%d')}T{end_time_picker.value.strftime('%H%M%S')}"}
-
-    def extract_date_info():
-    #    get_date["dtstart_str"] = f"{date_picker.start_value.strftime('%Y%m%d')}T{start_time_picker.value.strftime('%H%M%S')}"
-    #    get_date["dtend_str"] = f"{date_picker.end_value.strftime('%Y%m%d')}T{end_time_picker.value.strftime('%H%M%S')}"
-    #    prop_changed()
-        pass
-    
     def prop_changed():
         if _debounce_task["task"] is not None:
             _debounce_task["task"].cancel()
@@ -1161,21 +1168,37 @@ def main(page: Page):
             qr_url_input_field.value = f"geo:{location_lat.value},{location_lng.value}"
             display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
 
-        #elif qr_type_dropdown.value == "Event":
-        #    qr_url_input_field.value = (
-        #        f"BEGIN:VCALENDAR\r\n"
-        #        f"VERSION:2.0\r\n"
-        #        f"BEGIN:VEVENT\r\n"
-        #        f"SUMMARY:{event_title.value}\r\n"
-        #        f"LOCATION:{event_location.value}\r\n"
-        #        f"DTSTART:{get_date['dtstart_str']}\r\n"
-        #        f"DTEND:{get_date['dtend_str']}\r\n"
-        #        f"END:VEVENT\r\n"
-        #        f"END:VCALENDAR"
-        #    )
-        #    display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
-        #else:
-        #    display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2,error_correction)
+        elif qr_type_dropdown.value == "Event":
+            if date_picker.start_value and date_picker.end_value and start_time_picker.value and end_time_picker.value:
+                start_date = normalize_picker_date(date_picker.start_value)
+                end_date = normalize_picker_date(date_picker.end_value)
+                dtstart_str = f"{start_date.strftime('%Y%m%d')}T{start_time_picker.value.strftime('%H%M%S')}"
+                dtend_str = f"{end_date.strftime('%Y%m%d')}T{end_time_picker.value.strftime('%H%M%S')}"
+                qr_url_input_field.value = (
+                    f"BEGIN:VCALENDAR\r\n"
+                    f"VERSION:2.0\r\n"
+                    f"BEGIN:VEVENT\r\n"
+                    f"SUMMARY:{event_title.value}\r\n"
+                    f"LOCATION:{event_location.value}\r\n"
+                    f"DTSTART:{dtstart_str}\r\n"
+                    f"DTEND:{dtend_str}\r\n"
+                    f"END:VEVENT\r\n"
+                    f"END:VCALENDAR"
+                )
+                display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+            else:
+                qr_url_input_field.value = (
+                    f"BEGIN:VCALENDAR\r\n"
+                    f"VERSION:2.0\r\n"
+                    f"BEGIN:VEVENT\r\n"
+                    f"SUMMARY:{event_title.value}\r\n"
+                    f"LOCATION:{event_location.value}\r\n"
+                    f"END:VEVENT\r\n"
+                    f"END:VCALENDAR"
+                )
+                display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+        else:
+            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2,error_correction)
 
     def type_trigger(e):
         selected = e.control.value 
@@ -1463,24 +1486,39 @@ def main(page: Page):
             element.color = default_color
             element.style = None
 
+
+    bmac_button_top_bar = Button(
+        icon=Icons.COFFEE_ROUNDED,
+        content="Buy me a coffee",
+        visible=True,
+        color="yellow",
+        #bgcolor=Colors.YELLOW_900,
+        icon_color="yellow",
+        #on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR","BLANK"))
+    )
+
     top_bar = Row(controls=[
         Row(controls=[
             Text(value="QuickeR",size=24,weight=ft.FontWeight.BOLD,margin=Margin(left=10)),
         ]),
-        Container(border_radius=10,bgcolor=Colors.TERTIARY_CONTAINER,content=Text(value="Web", size=11, color=Colors.WHITE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),border=Border.all(width=3,color=Colors.TERTIARY),padding=7),
+        Container(
+            border_radius=10,
+            bgcolor=Colors.TERTIARY_CONTAINER,
+            content=Text(
+                value="Web",
+                size=11,
+                color=Colors.WHITE,
+                style=ft.TextStyle(weight=ft.FontWeight.BOLD)
+            ),
+            border=Border.all(width=3,color=Colors.TERTIARY),
+            padding=7
+        ),
         Container(expand=True),
         Row(
             alignment=ft.MainAxisAlignment.END,
             controls=[
                 #appearance_setting,
-                Button(
-                    icon=Icons.COFFEE_ROUNDED,
-                    content="Buy me a coffee",
-                    color="yellow",
-                    #bgcolor=Colors.YELLOW_900,
-                    icon_color="yellow",
-                    #on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR","BLANK"))
-                ),
+                bmac_button_top_bar,
                 IconButton(
                     icon=get_github_icon_by_mode(),
                     on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK"))
@@ -1495,41 +1533,38 @@ def main(page: Page):
     ])
 
     overview = Column(
-        #scroll=ScrollMode.AUTO,
         alignment=ft.MainAxisAlignment.CENTER,
         expand=True,
         controls=[create_button],
     )
 
-    main_view = Column(expand=True,controls=[top_bar,overview,Container(height=150)],)
-    #main_view = Stack(expand=True,controls=[Column(controls=[top_bar,Container(expand=True)]),overview],)
-
     async def open_url(url_to_open,target: ft.UrlTarget):
         url = url_to_open
         await ft.UrlLauncher().launch_url(ft.Url(url=url, target=target))
 
-    safearea= ft.SafeArea(content=main_view,expand=True)
+    safearea = ft.SafeArea(
+        content=Column(
+            expand=True,
+            controls=[top_bar,overview,Container(height=150)]
+        ),
+        expand=True
+    )
+    page.add(safearea)
+
+
     page.overlay.append(create_layout)
 
-    root_row = Row(controls=[safearea], expand=True, vertical_alignment=ft.CrossAxisAlignment.STRETCH)
-    page.add(root_row)
-
-    def on_resize(e):
-        #if page.width >= 1200:
-        #    page.navigation_bar = None
-        #    page.floating_action_button = None
-        #    page.navigation_rail = None
-        #    root_row.append()
-        if page.width >= 700:
-            pass
+    #Updates the app on resize
+    def resize_handler():
+        if page.width < 600:
+            bmac_button_top_bar.visible = False
         else:
-            pass
-        page.update()
+            bmac_button_top_bar.visible = True
+    resize_handler()
 
-    page.on_resize = on_resize
-    
-    on_resize(None)
-
+    #Initial exec functions
+    page.on_resize = resize_handler
     display_preview_qr("","black","white",ERROR_CORRECTION_MAP["M (15%)"])
 
+#Run the app
 ft.run(main, assets_dir="program_variants/assets")
