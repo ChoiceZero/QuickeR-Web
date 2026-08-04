@@ -51,7 +51,7 @@ def normalize_hex(color_str):
         r, g, b = PIL.ImageColor.getcolor(color_str, "RGB")
         return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
-def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25, bg_color=(255, 255, 255, 255)):
+def add_logo_aligned_to_grid(pil_img, logo_data, qr_obj, max_module_ratio=0.25, bg_color=(255, 255, 255, 255)):
     box_size = qr_obj.box_size
     border = qr_obj.border
     modules_count = len(qr_obj.get_matrix())
@@ -63,23 +63,16 @@ def add_logo_aligned_to_grid(pil_img, logo_path, qr_obj, max_module_ratio=0.25, 
 
     logo_size_px = max_logo_modules * box_size
 
-    logo = PIL.Image.open(logo_path).convert("RGBA")
+    logo = PIL.Image.open(BytesIO(logo_data)).convert("RGBA")
     logo = logo.resize((logo_size_px, logo_size_px))
 
     qr_w, qr_h = pil_img.size
-
-    # centrado directo en píxeles (evita desalineado por redondeo de módulos)
     pos_x = (qr_w - logo_size_px) // 2
     pos_y = (qr_h - logo_size_px) // 2
 
     pil_img = pil_img.convert("RGBA")
-
-    # fondo opaco detrás del logo, para que no se vean los módulos del QR
-    # a través de zonas transparentes del PNG del logo
     backdrop = PIL.Image.new("RGBA", (logo_size_px, logo_size_px), bg_color)
     pil_img.paste(backdrop, (pos_x, pos_y))
-
-    # ahora el logo encima, usando su propio alfa como máscara
     pil_img.paste(logo, (pos_x, pos_y), logo)
     return pil_img
 
@@ -104,8 +97,11 @@ class LogoPicker:
         page.update()
 
     async def pick(self, allowed_extensions=None):
-        files = await self.file_picker.pick_files(allowed_extensions=allowed_extensions)
-        return files[0].path if files else None
+        files = await self.file_picker.pick_files(
+            allowed_extensions=allowed_extensions,
+            with_data=True
+        )
+        return files[0] if files else None
         
 def main(page: Page):
     ###PAGE SETTINGS--------------------------------------------------------------
@@ -338,9 +334,9 @@ def main(page: Page):
             logo_picker_ref["instance"] = LogoPicker(page)
             page.update()
             await asyncio.sleep(0.2)
-        path = await logo_picker_ref["instance"].pick(["png", "jpg", "jpeg"])
-        if path:
-            logo_image_path["path"] = path
+        file = await logo_picker_ref["instance"].pick(["png", "jpg", "jpeg"])
+        if file and file.bytes:
+            logo_image_path["path"] = file.bytes
             prop_changed()
 
     #Removes the logo from the QR code and updates the preview
@@ -366,17 +362,6 @@ def main(page: Page):
             return Icons.PARTY_MODE_ROUNDED
         elif qr_type_dropdown.value == "Text":
             return Icons.TEXT_FORMAT_ROUNDED   
-
-    #Clears the QR creation bottom sheet and resets all input fields
-    def clear_dialog():
-        delete_dialog = AlertDialog(
-            title=Text("Discard?"),
-            alignment=Alignment.CENTER,
-            actions=[
-                Button(content="No", on_click=lambda e: page.pop_dialog()),
-                Button(icon=Icons.DELETE,bgcolor=Colors.RED_900,content="Yes", on_click=lambda e: clean_create_bs_up())],
-            open=True)
-        page.show_dialog(delete_dialog)
 
     #Clears the summary view and goes back to the home view, resetting all input fields
     def clear_summary():
@@ -1037,7 +1022,7 @@ def main(page: Page):
                     IconButton(
                         icon=Icons.CLOSE,
                         expand=True, 
-                        on_click=lambda e: clear_dialog(),    
+                        on_click=lambda e: clean_create_bs_up(),    
                         style=ButtonStyle(
                             shape=RoundedRectangleBorder(radius=12),
                             bgcolor={"": Colors.RED_500}, 
