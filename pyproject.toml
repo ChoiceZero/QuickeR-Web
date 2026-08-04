@@ -1,6 +1,6 @@
 [project]
 name = "QuickeR-Web"
-version = "1.02"
+version = "1.03"
 license = { text = "MIT" }
 description = ""
 readme = "README.md"
