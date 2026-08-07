@@ -773,19 +773,17 @@ def main(page: Page):
 
     wifi_password_setting= Column(visible=True,controls=[
         Divider(color="grey"),
-        Row(controls=[
+        Row(alignment=MainAxisAlignment.START,controls=[
             Icon(icon=Icons.PASSWORD_ROUNDED),
             Text(value=("WIFI password"), size=20),
-            Container(expand=True),
         ]),
         Container(border_radius=10,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_password),
     ])
 
     wifi_area = Column(visible=False,controls=[
-        Row(controls=[
+        Row(alignment=MainAxisAlignment.START,controls=[
             Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
             Text(value=("Network name"), size=20),
-            Container(expand=True)
         ]),
         Container(border_radius=10,
             bgcolor=Colors.SURFACE_CONTAINER,
@@ -820,20 +818,18 @@ def main(page: Page):
     email_address = TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
     email_adv_checkbox = Switch(value=False, on_change=lambda e: email_checkbox_changed())
     email_general_content=Column(visible=False,controls=[
-        Row(controls=[
+        Row(alignment=MainAxisAlignment.START,controls=[
             Icon(icon=Icons.MAIL_ROUNDED),
             Text(value=("Address"), size=20),
-            Container(expand=True)
         ]),
         Container(border_radius=10,
             bgcolor=Colors.SURFACE_CONTAINER,
             content=email_address
         ),
         Divider(color="grey"),
-        Row(controls=[
+        Row(alignment=MainAxisAlignment.START,controls=[
             Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
             Text(value=("Advanced options"), size=20),
-            Container(expand=True),
             Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=email_adv_checkbox)
         ]),
     ])
@@ -849,10 +845,10 @@ def main(page: Page):
     email_subject = TextField(expand=True, border_width=0, label="Subject", on_change=lambda e: prop_changed())
     email_body = TextField(expand=True, border_width=0, label="Body", multiline=True, on_change=lambda e: prop_changed())
     email_adv_content = Column(visible=False, controls=[
-        Row(controls=[Icon(icon=Icons.SUBJECT_ROUNDED), Text(value="Subject", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SUBJECT_ROUNDED), Text(value="Subject", size=20)]),
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_subject),
         Divider(color="grey"),
-        Row(controls=[Icon(icon=Icons.TEXT_FIELDS_ROUNDED), Text(value="Body", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.TEXT_FIELDS_ROUNDED), Text(value="Body", size=20)]),
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_body),
     ])
 
@@ -876,10 +872,9 @@ def main(page: Page):
         on_change=lambda e: prop_changed()
     )   
     phone_general_content=Column(visible=False,controls=[
-        Row(controls=[
+        Row(alignment=MainAxisAlignment.START,controls=[
             Icon(icon=Icons.CALL_ROUNDED),
             Text(value=("Phone number"), size=20),
-            Container(expand=True)
         ]),
         Row(
             expand=True,
@@ -922,7 +917,7 @@ def main(page: Page):
     sms_message = TextField(expand=True, border_width=0, label="Enter message", multiline=True, on_change=lambda e: prop_changed())
 
     sms_general_content = Column(visible=False, controls=[
-        Row(controls=[Icon(icon=Icons.SMS_ROUNDED), Text(value="Phone number", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SMS_ROUNDED), Text(value="Phone number", size=20)]),
         Row(controls=[
             Container(
                 border_radius=10,
@@ -932,7 +927,7 @@ def main(page: Page):
             Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=sms_number),
         ]),
         Divider(color="grey"),
-        Row(controls=[Icon(icon=Icons.MESSAGE_ROUNDED), Text(value="Message", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.MESSAGE_ROUNDED), Text(value="Message", size=20)]),
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=sms_message),
     ])
 
@@ -941,7 +936,7 @@ def main(page: Page):
     location_lng = TextField(expand=True, border_width=0, label="Longitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
 
     location_general_content = Column(visible=False, controls=[
-        Row(controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Coordinates", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Coordinates", size=20)]),
         Row(controls=[
             Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lat),
             Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lng),
@@ -977,13 +972,13 @@ def main(page: Page):
     end_time_picker_button = Button(content="End time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
 
     event_general_content = Column(visible=False, controls=[
-        Row(controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20)]),
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_title),
         Divider(color="grey"),
-        Row(controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20)]),
         Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location),
         Divider(color="grey"),
-        Row(controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20), Container(expand=True)]),
+        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20)]),
         Container(
             content=Row(controls=[
                 Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
@@ -1055,8 +1050,8 @@ def main(page: Page):
             ),
             Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
                 Column(controls=[
-                    Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                        Row(controls=[
+                    Row(expand=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                        Row(tight=False,controls=[
                             Icon(icon=Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
                             Text(value=("QR Type"), size=20),
                         ]),
