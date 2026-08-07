@@ -482,7 +482,7 @@ def main(page: Page):
                                             Container(content=Text(value="ONE TIME", size=10, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),margin=Margin.only(left=5),bgcolor=Colors.TERTIARY_CONTAINER,border=Border.all(width=3, color=Colors.TERTIARY), border_radius=10, padding=5),
                                         ]),
                                         Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=Colors.WHITE),
-                                        Row(alignment=MainAxisAlignment.CENTER,controls=[
+                                        Row(alignment=MainAxisAlignment.CENTER,controls=Row(wrap=True,controls=[
                                             Button(
                                                 margin=Margin.only(top=10),
                                                 content=Text(value="Buy Me a Coffee"),
@@ -509,7 +509,7 @@ def main(page: Page):
                                                     overlay_color=Colors.ON_PRIMARY_CONTAINER
                                                 ),
                                             )
-                                        ])
+                                        ]))
                                     ]
                                 )
                             ),
@@ -610,10 +610,11 @@ def main(page: Page):
                                 Text(value="MIT License", size=15, color=Colors.PRIMARY)
                             ]), 
                             Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                            Row(controls=[
-                                Icon(icon=Icons.PERSON_2_ROUNDED, size=15, color=Colors.PRIMARY),
-                                Text(value=("Developed by"), size=15, color=Colors.GREY_400),
-                                Container(expand=True),
+                            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                Row(controls=[
+                                    Icon(icon=Icons.PERSON_2_ROUNDED, size=15, color=Colors.PRIMARY),
+                                    Text(value=("Developed by"), size=15, color=Colors.GREY_400),
+                                ]),
                                 Text(value="Unax Martinez Llorente (aka ChoiceZero).", size=15, color=Colors.WHITE)
                             ]),
                         ])
@@ -689,31 +690,34 @@ def main(page: Page):
                         margin=Margin.only(left=20, right=20, bottom=5),
                         bgcolor=Colors.SURFACE_CONTAINER_HIGH,
                         content=Column(controls=[
-                            Row(controls=[
-                                Icon(icon=Icons.DISABLED_VISIBLE_ROUNDED, size=15, color=Colors.PRIMARY),
-                                Text(value=("Private"), size=15, color=Colors.GREY_400),
-                                Container(expand=True),
-                                Text(value="No telemetry or analytics are used", size=15, color=Colors.WHITE)  
+                            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                Row(controls=[
+                                    Icon(icon=Icons.DISABLED_VISIBLE_ROUNDED, size=15, color=Colors.PRIMARY),
+                                    Text(value=("Private"), size=15, color=Colors.GREY_400),
+                                ]),
+                                Text(value="No telemetry or analytics are used.", size=15, color=Colors.WHITE)  
                             ]),
                             Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                            Row(controls=[
-                                Icon(icon=Icons.EDIT_ROUNDED, size=15, color=Colors.PRIMARY),
-                                Text(value=("Open source"), size=15, color=Colors.GREY_400),
-                                Container(expand=True),
-                                Text(value="Fully open source and auditable", size=15, color=Colors.WHITE)  
+                            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                Row(controls=[
+                                    Icon(icon=Icons.EDIT_ROUNDED, size=15, color=Colors.PRIMARY),
+                                    Text(value=("Open source"), size=15, color=Colors.GREY_400),
+                                ]),
+                                Text(value="Fully open source and auditable.", size=15, color=Colors.WHITE)  
                             ]),
                             Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                            Row(controls=[
-                                Icon(icon=Icons.VERIFIED_USER_ROUNDED, size=15, color=Colors.PRIMARY),
-                                Text(value=("Personal"), size=15, color=Colors.GREY_400),
-                                Container(expand=True),
-                                Text(value="No private data is collected or stored", size=15, color=Colors.WHITE)
+                            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                Row(controls=[
+                                    Icon(icon=Icons.VERIFIED_USER_ROUNDED, size=15, color=Colors.PRIMARY),
+                                    Text(value=("Personal"), size=15, color=Colors.GREY_400),
+                                ]),
+                                Text(value="No private data is collected or stored.", size=15, color=Colors.WHITE)
                             ]),
                         ])
                     ),
                     Row(alignment=MainAxisAlignment.CENTER,controls=[Text(value="Made with ❤️ in Spain.", size=15, color=Colors.GREY_400)]),
                     Text(value="© 2026 Unax Martinez Llorente.", size=15, color=Colors.GREY_400),
-                    Container(width=50),    
+                    Container(height=50),    
                 ]
             )
         )   
@@ -802,10 +806,11 @@ def main(page: Page):
             bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
             margin=Margin.only(left=0, right=0, top=5, bottom=5,)
         ),
-        Row(controls=[
+        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+            Row(controls=[
             Icon(icon=Icons.SHIELD),
             Text(value=("WIFI security protocol"), size=20),
-            Container(expand=True),
+            ]),
             Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_protocol_dropdown)
         ]),
         wifi_password_setting
@@ -993,7 +998,7 @@ def main(page: Page):
             bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
             margin=Margin.only(left=0, right=0, top=5, bottom=5,)
         ),
-        Row(controls=[
+        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
             date_picker_button,
             start_time_picker_button,
             end_time_picker_button,
@@ -1012,8 +1017,17 @@ def main(page: Page):
 
     preview_qr_area= Row(controls=[], alignment=ft.MainAxisAlignment.CENTER,expand=False, tight=True)
 
-    input_row = Column(controls=[Row(controls=[Icon(icon=Icons.SHORT_TEXT_ROUNDED),Text(value=("Content"), size=20)]),Row(visible=True,controls=[Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),Container(border_radius=10,expand=True,bgcolor=Colors.SURFACE_CONTAINER,content=qr_url_input_field)]),
+    input_row = Column(controls=[
+        Row(controls=[
+            Icon(icon=Icons.SHORT_TEXT_ROUNDED),
+            Text(value=("Content"), size=20)
+        ]),
+        Row(visible=True,controls=[
+            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),
+            Container(border_radius=10,expand=True,bgcolor=Colors.SURFACE_CONTAINER,content=qr_url_input_field),
+        ]),
     ])
+
     create_layout= BottomSheet(draggable=False,use_safe_area=True,scrollable=False,fullscreen=True,open=False,on_dismiss=lambda e: clean_create_bs_up(),content=
         Column(horizontal_alignment="center",scroll=ScrollMode.AUTO,controls=[
             Container(bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,expand=False,content=preview_qr_area,padding=20,),
@@ -1041,7 +1055,13 @@ def main(page: Page):
             ),
             Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
                 Column(controls=[
-                    Row(controls=[Icon(icon=Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),Text(value=("QR Type"), size=20),Container(expand=True),Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=qr_type_dropdown)]),
+                    Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                        Row(controls=[
+                            Icon(icon=Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
+                            Text(value=("QR Type"), size=20),
+                        ]),
+                        Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=qr_type_dropdown)
+                    ]),
                     Divider(color="grey"),
                     wifi_area,
                     input_row,
@@ -1052,7 +1072,13 @@ def main(page: Page):
                     location_general_content,
                     event_general_content,
                     Divider(color="grey"),
-                    Row(controls=[Icon(icon=Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),Text(value=("Error correction level"), size=20),Container(expand=True),Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=error_correction_dropdown)]), 
+                    Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                        Row(controls=[
+                            Icon(icon=Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
+                            Text(value=("Error correction level"), size=20),
+                        ]),
+                        Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=error_correction_dropdown)
+                    ]), 
                 ])
             ),
             Text(value="Customization", size=18,color=Colors.PRIMARY),
@@ -1073,10 +1099,9 @@ def main(page: Page):
                         bgcolor=Colors.RED_500,border_radius=30,
                         margin=Margin.only(left=0, right=0, top=5, bottom=5,)
                     ),
-                    Row(controls=[
-                    Button(content="Pick image from folder",icon=Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
-                    Container(expand=True),
-                    Button(content="Remove logo",icon=Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
+                    Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                        Button(content="Pick image from folder",icon=Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
+                        Button(content="Remove logo",icon=Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
                     ]),
                     Divider(color="grey"),
                     Text(value=("Color scheme"), size=20, color=Colors.PRIMARY),
@@ -1443,8 +1468,7 @@ def main(page: Page):
             align=Alignment.CENTER,
             content=Row(tight=True,controls=[
                 filename_textfield,
-                Container(height=30,width=2,bgcolor="grey",margin=Margin(left=5,right=5),content=Text("")),     
-                #error_correction_container,
+                Container(height=30,width=2,bgcolor="grey",margin=Margin(left=5,right=5),content=Text("")), 
                 download_button,
             ])
         ),
