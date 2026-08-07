@@ -403,12 +403,10 @@ def main(page: Page):
         async def _open_about():
             if about_bs_ref["instance"] is None:
                 about_bs_ref["instance"] = build_about_bs()
-            bs = about_bs_ref["instance"]
-            if bs not in page.overlay:
-                page.overlay.append(bs)
+                page.overlay.append(about_bs_ref["instance"])
                 page.update()
                 await asyncio.sleep(0.05)
-            bs.open = True
+            about_bs_ref["instance"].open = True
             page.update()
         page.run_task(_open_about)
 

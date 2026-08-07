@@ -27,11 +27,29 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Cache uv venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-
+
       - name: Cache Flutter SDK
         uses: actions/cache@v4
         with:
           path: /home/runner/flutter
           key: flutter-3.44.8
+          restore-keys: |
+            flutter-
+
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Inject version into app
         shell: bash
@@ -43,7 +61,7 @@ jobs:
       - name: Build app
         shell: bash
         run: |
-          uv run flet build web --yes --verbose --base-url ${GITHUB_REPOSITORY#*/} --route-url-strategy hash
+          uv run flet build web --yes --base-url ${GITHUB_REPOSITORY#*/} --route-url-strategy hash
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4.0.0
