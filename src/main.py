@@ -756,7 +756,7 @@ def main(page: ft.Page):
         
     ##CREATE BOTTOM SHEET (lazy-built) --------------------------------------------------------------
     def build_create_bs():
-        qr_type_dropdown = ft.Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
+        qr_type_dropdown = ft.Dropdown(border_radius=50,fill_color=ft.Colors.SURFACE_CONTAINER_LOW,filled=True,on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
             ft.DropdownOption(text="URL/Link",leading_icon=ft.Icons.LINK_ROUNDED),
             ft.DropdownOption(text="Text",leading_icon=ft.Icons.TEXT_FIELDS_ROUNDED),
             ft.DropdownOption(text="WIFI",leading_icon=ft.Icons.WIFI_ROUNDED),
@@ -768,7 +768,7 @@ def main(page: ft.Page):
         ])
 
         #URL
-        url_protocol_dropdown = ft.Dropdown(value="https://",border_width=0,options=[
+        url_protocol_dropdown = ft.Dropdown(border_radius=50,fill_color=ft.Colors.SURFACE_CONTAINER_LOW,filled=True,value="https://",border_width=0,options=[
             ft.DropdownOption(text="https://"),
             ft.DropdownOption(text="http://"),
             ])
@@ -781,7 +781,7 @@ def main(page: ft.Page):
             on_change=lambda e: prop_changed()
         )
 
-        wifi_protocol_dropdown = ft.Dropdown(value="WPA2",border_width=0,on_select=lambda e: wifi_protocol_changed(e),options=[
+        wifi_protocol_dropdown = ft.Dropdown(border_radius=50,fill_color=ft.Colors.SURFACE_CONTAINER_LOW,filled=True,value="WPA2",border_width=0,on_select=lambda e: wifi_protocol_changed(e),options=[
             ft.DropdownOption(text="WPA2"),
             ft.DropdownOption(text="WPA"),
             ft.DropdownOption(text="WEP"),
@@ -838,10 +838,10 @@ def main(page: ft.Page):
             ),
             ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
                 ft.Row(controls=[
-                ft.Icon(icon=ft.Icons.SHIELD),
-                ft.Text(value=("WIFI security protocol"), size=20),
+                    ft.Icon(icon=ft.Icons.SHIELD),
+                    ft.Text(value=("WIFI security protocol"), size=20),
                 ]),
-                ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=wifi_protocol_dropdown)
+                wifi_protocol_dropdown
             ]),
             wifi_password_setting
         ])
@@ -1033,7 +1033,7 @@ def main(page: ft.Page):
         ])
 
         qr_url_input_field = ft.TextField(expand=True,border_width=0,label="Enter URL or text",on_change=lambda e: prop_changed())
-        error_correction_dropdown = ft.Dropdown(value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
+        error_correction_dropdown = ft.Dropdown(border_radius=50,fill_color=ft.Colors.SURFACE_CONTAINER_LOW,filled=True,value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
             ft.DropdownOption(text="L (7%)"),
             ft.DropdownOption(text="M (15%)"),
             ft.DropdownOption(text="Q (25%)"),
@@ -1050,7 +1050,7 @@ def main(page: ft.Page):
                 ft.Text(value=("Content"), size=20)
             ]),
             ft.Row(visible=True,controls=[
-                ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),
+                url_protocol_dropdown,
                 ft.Container(border_radius=10,expand=True,bgcolor=ft.Colors.SURFACE_CONTAINER,content=qr_url_input_field),
             ]),
         ])
@@ -1082,13 +1082,11 @@ def main(page: ft.Page):
                 ),
                 ft.Container(bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
                     ft.Column(controls=[
-                        ft.Row(expand=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
-                            ft.Row(tight=False,controls=[
-                                ft.Icon(icon=ft.Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
-                                ft.Text(value=("QR Type"), size=20),
-                            ]),
-                            ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=qr_type_dropdown)
+                        ft.Row(tight=True,col={"xs": 12, "lg": 3}, controls=[
+                            ft.Icon(icon=ft.Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
+                            ft.Text(value=("QR Type"), size=20),
                         ]),
+                        ft.Container(col={"xs": 12, "lg": 2},content=qr_type_dropdown),
                         ft.Divider(color="grey"),
                         wifi_area,
                         input_row,
@@ -1104,7 +1102,7 @@ def main(page: ft.Page):
                                 ft.Icon(icon=ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
                                 ft.Text(value=("Error correction level"), size=20),
                             ]),
-                            ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=error_correction_dropdown)
+                            error_correction_dropdown
                         ]), 
                     ])
                 ),
@@ -1492,7 +1490,7 @@ def main(page: ft.Page):
         visible=False,
         expand=False,
         align=ft.Alignment.CENTER,
-        content=ft.Row(tight=True,controls=[
+        content=ft.Row(tight=True,scroll=ft.ScrollMode.ADAPTIVE,controls=[
             email_advanced_container,
             sms_container,
             event_summary_container,
@@ -1503,16 +1501,27 @@ def main(page: ft.Page):
     summary_visual = ft.Column(tight=True,controls=[
         ft.Container(padding=20,border_radius=30,align=ft.Alignment.CENTER,bgcolor=ft.Colors.INVERSE_PRIMARY,content=preview_qr_on_summary),
         ft.Container(
-            bgcolor=ft.Colors.SURFACE_CONTAINER,
+            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
             border_radius=20,
             padding=5,
             expand=False,
+            width=500,
             align=ft.Alignment.CENTER,
-            content=ft.Row(tight=True,controls=[
-                filename_textfield,
-                ft.Container(height=30,width=2,bgcolor="grey",margin=ft.Margin(left=5,right=5),content=ft.Text("")), 
-                download_button,
-            ])
+            content=ft.ResponsiveRow(
+                spacing=5,
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                controls=[
+                    ft.Container(
+                        content=filename_textfield,
+                        col={"xs": 12, "sm": 7.7},
+                    ),
+                    ft.Container(
+                        content=download_button,
+                        col={"xs": 12, "sm": 4.2},
+                    ),
+                ],
+            ),
         ),
         ft.Row(alignment=ft.MainAxisAlignment.CENTER,margin=ft.Margin(top=40),controls=[
             ft.Container(on_hover=lambda e: handle_modify_hover(e, modify_text,ft.Colors.WHITE,ft.Colors.WHITE),on_click=lambda e:qr_creator_open(),content=modify_text),
@@ -1524,13 +1533,15 @@ def main(page: ft.Page):
             border_radius=30,
             padding=10,
             expand=False,
+            width=500,
             align=ft.Alignment.CENTER,
-            content=ft.Row(tight=True,controls=[
+            content=ft.Row(tight=True,scroll=ft.ScrollMode.ADAPTIVE,controls=[
                 ft.Container(padding=15,border_radius=20,border=ft.Border.all(width=4,color=ft.Colors.PRIMARY),bgcolor=ft.Colors.PRIMARY_CONTAINER,content=type_icon),
+                error_correction_container,
                 get_content_container(text_label,text_content),
                 wifi_subcontainer,
                 longitude_container,
-                error_correction_container,
+                
             ])
         ),
         extra_vis,
@@ -1592,7 +1603,9 @@ def main(page: ft.Page):
     ])
 
     overview = ft.Column(
+        scroll=ft.ScrollMode.ADAPTIVE,
         alignment=ft.MainAxisAlignment.CENTER,
+        #align=ft.CrossAxisAlignment.CENTER,
         expand=True,
         controls=[create_button],
     )
@@ -1604,7 +1617,7 @@ def main(page: ft.Page):
     safearea = ft.SafeArea(
         content=ft.Column(
             expand=True,
-            controls=[top_bar,overview,ft.Container(height=150)]
+            controls=[top_bar,overview]
         ),
         expand=True
     )
