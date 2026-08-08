@@ -1,12 +1,6 @@
 import os
 import qrcode
 import flet as ft
-from flet import (
-    DateRangePicker, TimePicker,ExpansionTile,Dropdown,DropdownOption,ThemeMode,Theme,Page,RoundedRectangleBorder,
-    ButtonStyle,Divider,BottomSheet,Border,Margin,Icon,Icons, IconButton, Container, Image, TextField, Text, Row, 
-    Column, Colors, ScrollMode, AlertDialog, FilePicker, TextButton, Alignment, Button, IconButton, TextStyle, FontWeight,
-    RoundedRectangleBorder, BorderSide, MainAxisAlignment, CrossAxisAlignment, Switch
-)
 from flet_color_pickers import MaterialPicker
 import base64
 from io import BytesIO  
@@ -94,7 +88,7 @@ def contrast_ratio(hex1, hex2):
 class LogoPicker:
     def __init__(self, page):
         self.page = page
-        self.file_picker = FilePicker()
+        self.file_picker = ft.FilePicker()
         page.services.append(self.file_picker)
         page.update()
 
@@ -125,7 +119,7 @@ class CreateBsHandle:
         self.create_bs.open = value
 
         
-def main(page: Page):
+def main(page: ft.Page):
     ###PAGE SETTINGS--------------------------------------------------------------
     page.title = "QuickeR"
     
@@ -139,35 +133,37 @@ def main(page: Page):
     
     ##THEMING--------------------------------------------------------------
     page.fonts = {
-        "MaterialRounded":"GoogleSansFlex.ttf"
+        "MaterialRounded":"GoogleSansFlex.ttf",
+        "MaterialRoundedBold":"GoogleSansFlex-Bold.ttf"
+        #"MaterialRoundedLight":"GoogleSansFlex-Light.ttf"
     }
     page.update()
-    page.theme_mode = ThemeMode.DARK
+    page.theme_mode = ft.ThemeMode.DARK
 
     #Picks a random theme color and a font
     def theme_selector():
         theme_colors = [
-            Colors.BLUE_600,
-            Colors.GREEN_600,
-            Colors.YELLOW_600,
-            Colors.ORANGE_600,
-            Colors.RED_600,
-            Colors.PURPLE_600,
-            Colors.PINK_600,
-            Colors.GREY_600
-            #Colors.GREY_100
+            ft.Colors.BLUE_600,
+            ft.Colors.GREEN_600,
+            ft.Colors.YELLOW_600,
+            ft.Colors.ORANGE_600,
+            ft.Colors.RED_600,
+            ft.Colors.PURPLE_600,
+            ft.Colors.PINK_600,
+            ft.Colors.GREY_600
+            #ft.Colors.GREY_100
         ]
         selected_theme = theme_colors[random.randint(0,(len(theme_colors)-1))]
-        page.theme = Theme(color_scheme_seed=selected_theme, font_family="MaterialRounded")
+        page.theme = ft.Theme(color_scheme_seed=selected_theme, font_family="MaterialRounded")
         page.update()
     theme_selector()
 
     #Swaps theme mode between light and dark
     def appearance_swapper():
-        if page.theme_mode == ThemeMode.DARK:
-            page.theme_mode = ThemeMode.LIGHT
+        if page.theme_mode == ft.ThemeMode.DARK:
+            page.theme_mode = ft.ThemeMode.LIGHT
         else:
-            page.theme_mode = ThemeMode.DARK
+            page.theme_mode = ft.ThemeMode.DARK
         page.update()
 
     ###MAIN FUNCTIONS--------------------------------------------------------------
@@ -215,31 +211,31 @@ def main(page: Page):
         pil_img.save(archivo_temporal_ram, format="PNG")
         base64_puro = base64.b64encode(archivo_temporal_ram.getvalue()).decode("utf-8")
         uri_base64 = f"data:image/png;base64,{base64_puro}"
-        preview_qr = Image(src=uri_base64, width=200, height=200, border_radius=10)
+        preview_qr = ft.Image(src=uri_base64, width=200, height=200, border_radius=10)
         preview_qr_on_summary.content = preview_qr
         if create_bs_ref["instance"] is not None:
             create_bs_ref["instance"].preview_qr_area.controls.append(preview_qr)
         page.update()
-    file_saver = FilePicker()
+    file_saver = ft.FilePicker()
     page.services.append(file_saver)
     page.update()
 
     #Shows a dialog confirming the download and starts the download process, besides offering retries
     def show_download_confirm_dialog():
         if not filename_textfield.value:
-            page.show_dialog(AlertDialog(
-                title=Text("Missing filename"),
-                content=Text("Please enter a filename for the QR code."),
-                actions=[TextButton("OK", on_click=lambda e: page.pop_dialog())],
+            page.show_dialog(ft.AlertDialog(
+                title=ft.Text("Missing filename"),
+                content=ft.Text("Please enter a filename for the QR code."),
+                actions=[ft.TextButton("OK", on_click=lambda e: page.pop_dialog())],
                 actions_alignment="end",
             ))
         else:
-            page.show_dialog(AlertDialog(
-                title=Text("Download started!"),
-                content=Text(f"The qr code should download automatically.\n If it doesn't, please retry with the button below."),
+            page.show_dialog(ft.AlertDialog(
+                title=ft.Text("Download started!"),
+                content=ft.Text(f"The qr code should download automatically.\n If it doesn't, please retry with the button below."),
                 actions=[
-                    TextButton("Retry", on_click=lambda e: asyncio.ensure_future(download_qr())),
-                    TextButton("Got it!", on_click=lambda e: page.pop_dialog()),
+                    ft.TextButton("Retry", on_click=lambda e: asyncio.ensure_future(download_qr())),
+                    ft.TextButton("Got it!", on_click=lambda e: page.pop_dialog()),
                 ],
                 actions_alignment="end",
             ))
@@ -273,10 +269,10 @@ def main(page: Page):
     #Checks that everything is filled in before transitioning to summary view
     def input_checker():
         def alert_empty():
-            page.show_dialog(AlertDialog(
-                title=Text("Missing required fields"),
-                content=Text("Please fill in all required fields for the selected QR type."),
-                actions=[TextButton("OK", on_click=lambda e: page.pop_dialog())],
+            page.show_dialog(ft.AlertDialog(
+                title=ft.Text("Missing required fields"),
+                content=ft.Text("Please fill in all required fields for the selected QR type."),
+                actions=[ft.TextButton("OK", on_click=lambda e: page.pop_dialog())],
                 actions_alignment="end",
             ))
 
@@ -317,10 +313,10 @@ def main(page: Page):
     #Copies text to the clipboard
     async def copy_text_to_clipboard(text):
         await ft.Clipboard().set(text)
-        page.show_dialog(AlertDialog(
-            title=Text("Text copied"),
-            content=Text("The text has been copied to the clipboard."),
-            actions=[TextButton("OK", on_click=lambda e: page.pop_dialog())],
+        page.show_dialog(ft.AlertDialog(
+            title=ft.Text("Text copied"),
+            content=ft.Text("The text has been copied to the clipboard."),
+            actions=[ft.TextButton("OK", on_click=lambda e: page.pop_dialog())],
             actions_alignment="end",
         ))
 
@@ -337,22 +333,22 @@ def main(page: Page):
         if input_checker():
             contrast_result = check_qr_contrast(cb.qr_color_scheme_primary.color, cb.qr_color_scheme_secondary.color)
             if contrast_result == 1:
-                page.show_dialog(AlertDialog(
-                    title=Text("Low contrast"),
-                    content=Text("The selected colors have low contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
+                page.show_dialog(ft.AlertDialog(
+                    title=ft.Text("Low contrast"),
+                    content=ft.Text("The selected colors have low contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
                     actions=[
-                        TextButton("Cancel", on_click=lambda e: page.pop_dialog()),
-                        TextButton("Continue", on_click=lambda e: [page.pop_dialog(), perform_transition()]),
+                        ft.TextButton("Cancel", on_click=lambda e: page.pop_dialog()),
+                        ft.TextButton("Continue", on_click=lambda e: [page.pop_dialog(), perform_transition()]),
                     ],
                     actions_alignment="end",
                 ))
             elif contrast_result == 2:
-                page.show_dialog(AlertDialog(
-                    title=Text("Moderate contrast"),
-                    content=Text("The selected colors have moderate contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
+                page.show_dialog(ft.AlertDialog(
+                    title=ft.Text("Moderate contrast"),
+                    content=ft.Text("The selected colors have moderate contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
                     actions=[
-                        TextButton("Cancel", on_click=lambda e: page.pop_dialog()),
-                        TextButton("Continue", on_click=lambda e: [page.pop_dialog(), perform_transition()]),
+                        ft.TextButton("Cancel", on_click=lambda e: page.pop_dialog()),
+                        ft.TextButton("Continue", on_click=lambda e: [page.pop_dialog(), perform_transition()]),
                     ],
                     actions_alignment="end",
                 ))
@@ -379,21 +375,21 @@ def main(page: Page):
     def get_logo():
         cb = create_bs_ref["instance"]
         if cb.qr_type_dropdown.value == "WIFI":
-            return Icons.WIFI_ROUNDED
+            return ft.Icons.WIFI_ROUNDED
         elif cb.qr_type_dropdown.value == "URL/Link":
-            return Icons.LINK_ROUNDED
+            return ft.Icons.LINK_ROUNDED
         elif cb.qr_type_dropdown.value == "Email":
-            return Icons.MAIL_ROUNDED
+            return ft.Icons.MAIL_ROUNDED
         elif cb.qr_type_dropdown.value == "Phone":
-            return Icons.CALL_ROUNDED
+            return ft.Icons.CALL_ROUNDED
         elif cb.qr_type_dropdown.value == "SMS":
-            return Icons.MESSAGE_ROUNDED
+            return ft.Icons.MESSAGE_ROUNDED
         elif cb.qr_type_dropdown.value == "Location":
-            return Icons.PIN_ROUNDED
+            return ft.Icons.PIN_ROUNDED
         elif cb.qr_type_dropdown.value == "Event":
-            return Icons.PARTY_MODE_ROUNDED
+            return ft.Icons.PARTY_MODE_ROUNDED
         elif cb.qr_type_dropdown.value == "Text":
-            return Icons.TEXT_FORMAT_ROUNDED   
+            return ft.Icons.TEXT_FORMAT_ROUNDED   
 
     #Clears the summary view and goes back to the home view, resetting all input fields
     def clear_summary():
@@ -405,12 +401,12 @@ def main(page: Page):
             clean_create_bs_up(full_reset=True)
             page.update()
 
-        page.show_dialog(AlertDialog(
-            title=Text("Discard?"),
-            alignment=Alignment.CENTER,
+        page.show_dialog(ft.AlertDialog(
+            title=ft.Text("Discard?"),
+            alignment=ft.Alignment.CENTER,
             actions=[
-                Button(content="No", on_click=lambda e: page.pop_dialog()),
-                Button(icon=Icons.DELETE,bgcolor=Colors.RED_900,content="Yes", on_click=lambda e: clear_summary_action())],
+                ft.TextButton("No", on_click=lambda e: page.pop_dialog()),
+                ft.TextButton(icon=ft.Icons.DELETE, bgcolor=ft.Colors.RED_900, content="Yes", on_click=lambda e: clear_summary_action())],
             open=True))
 
     #Clears the QR creation bottom sheet and resets all input fields
@@ -449,15 +445,15 @@ def main(page: Page):
     #Sets the GitHub icon color based on the current theme mode and whether it should be inverted
     def get_github_icon_by_mode(invert=False):
         if invert:
-            if page.theme_mode == ThemeMode.DARK:
-                return Image("github-white-icon.webp",color="black",width=20,height=20)
+            if page.theme_mode == ft.ThemeMode.DARK:
+                return ft.Image("github-white-icon.webp",color="black",width=20,height=20)
             else:
-                return Image("github-white-icon.webp",color="white",width=20,height=20)
+                return ft.Image("github-white-icon.webp",color="white",width=20,height=20)
         else:
-            if page.theme_mode == ThemeMode.DARK:
-                return Image("github-white-icon.webp",color="white",width=20,height=20)
+            if page.theme_mode == ft.ThemeMode.DARK:
+                return ft.Image("github-white-icon.webp",color="white",width=20,height=20)
             else:
-                return Image("github-white-icon.webp",color="black",width=20,height=20)
+                return ft.Image("github-white-icon.webp",color="black",width=20,height=20)
 
     ###LAYOUTS AND CONTROLS--------------------------------------------------------------
 
@@ -468,7 +464,7 @@ def main(page: Page):
 
     ##ABOUT BOTTOM SHEET (lazy-built) --------------------------------------------------------------
     def build_about_bs():
-        about_bs = BottomSheet(
+        about_bs = ft.BottomSheet(
             draggable=True,
             use_safe_area=True,
             scrollable=True,
@@ -477,145 +473,145 @@ def main(page: Page):
             open=False,
             on_dismiss=lambda e: clean_about_bs_up(),
             content=
-                Column(
+                ft.Column(
                     horizontal_alignment="center",
-                    scroll=ScrollMode.AUTO,
+                    scroll=ft.ScrollMode.AUTO,
                     visible=True,
                     controls=[
-                        Container(
-                            content=Column(controls=[
-                                Row(alignment="center",controls=[
-                                    Text(value="QuickeR", size=40, align=Alignment.CENTER, color=Colors.WHITE, style=TextStyle(weight=FontWeight.BOLD)),
-                                    Container(border_radius=10,bgcolor=Colors.TERTIARY_CONTAINER,content=Text(value="Web", size=15, color=Colors.WHITE, style=TextStyle(weight=FontWeight.BOLD)),margin=Margin.only(left=5),border=Border.all(width=3,color=Colors.TERTIARY),padding=10)
+                        ft.Container(
+                            content=ft.Column(controls=[
+                                ft.Row(alignment="center",controls=[
+                                    ft.Text(value="QuickeR", size=40,font_family="MaterialRoundedBold", align=ft.Alignment.CENTER, color=ft.Colors.WHITE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                    ft.Container(border_radius=10,bgcolor=ft.Colors.TERTIARY_CONTAINER,content=ft.Text(value="Web", size=15,font_family="MaterialRoundedBold", color=ft.Colors.WHITE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),margin=ft.Margin.only(left=5),border=ft.Border.all(width=3,color=ft.Colors.TERTIARY),padding=10)
                                 ]),
-                                Text(value="Quick | Simple | Private | Open Source", size=15, align=Alignment.CENTER, color=Colors.GREY_400, style=TextStyle(weight=FontWeight.W_200))
+                                ft.Text(value="Quick | Simple | Private | Open Source", size=15, align=ft.Alignment.CENTER, color=ft.Colors.GREY_400, style=ft.TextStyle(weight=ft.FontWeight.W_200))
                             ]),
                             padding=20,
-                            bgcolor=Colors.SECONDARY_CONTAINER,
+                            bgcolor=ft.Colors.SECONDARY_CONTAINER,
                             border_radius=30,
                             width=page.width,
-                            margin=Margin.only(left=20, right=20, bottom=5)
+                            margin=ft.Margin.only(left=20, right=20, bottom=5)
                         ),
-                        ExpansionTile(
-                            bgcolor=Colors.SURFACE_CONTAINER_HIGH,
-                            collapsed_bgcolor=Colors.SURFACE_CONTAINER_HIGH,
-                            margin=Margin.only(left=20, right=20, bottom=5),
-                            shape=RoundedRectangleBorder(side=BorderSide(width=0), radius=20),
-                            collapsed_shape=RoundedRectangleBorder(side=BorderSide(width=0), radius=20),
-                            title=Text(value="Support QuickeR", size=15, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
-                            controls=[Column(controls=[
-                                Container(
-                                    margin=Margin.only(left=10,right=10),
+                        ft.ExpansionTile(
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                            collapsed_bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                            margin=ft.Margin.only(left=20, right=20, bottom=5),
+                            shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),
+                            collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),
+                            title=ft.Text(value="Support QuickeR", size=15, color=ft.Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                            controls=[ft.Column(controls=[
+                                ft.Container(
+                                    margin=ft.Margin.only(left=10,right=10),
                                     border_radius=20,
-                                    bgcolor=Colors.SECONDARY_CONTAINER,
+                                    bgcolor=ft.Colors.SECONDARY_CONTAINER,
                                     padding=20,
-                                    content=Column(
+                                    content=ft.Column(
                                         controls=[
-                                            Row(controls=[
-                                                Icon(icon=Icons.PAYMENT_ROUNDED,color=Colors.WHITE),
-                                                Text(value="Donate", size=25, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
-                                                Container(content=Text(value="ONE TIME", size=10, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),margin=Margin.only(left=5),bgcolor=Colors.TERTIARY_CONTAINER,border=Border.all(width=3, color=Colors.TERTIARY), border_radius=10, padding=5),
+                                            ft.Row(controls=[
+                                                ft.Icon(icon=ft.Icons.PAYMENT_ROUNDED,color=ft.Colors.WHITE),
+                                                ft.Text(value="Donate", size=25, color=ft.Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                                ft.Container(content=ft.Text(value="ONE TIME", size=10, color=ft.Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),margin=ft.Margin.only(left=5),bgcolor=ft.Colors.TERTIARY_CONTAINER,border=ft.Border.all(width=3, color=ft.Colors.TERTIARY), border_radius=10, padding=5),
                                             ]),
-                                            Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=Colors.WHITE),
-                                            Row(alignment=MainAxisAlignment.CENTER,controls=Row(wrap=True,controls=[
-                                                Button(
-                                                    margin=Margin.only(top=10),
-                                                    content=Text(value="Buy Me a Coffee"),
-                                                    icon=Icons.COFFEE_ROUNDED, 
+                                            ft.Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=ft.Colors.WHITE),
+                                            ft.Row(alignment=ft.MainAxisAlignment.CENTER,controls=ft.Row(wrap=True,controls=[
+                                                ft.Button(
+                                                    margin=ft.Margin.only(top=10),
+                                                    content=ft.Text(value="Buy Me a Coffee"),
+                                                    icon=ft.Icons.COFFEE_ROUNDED, 
                                                     #on_click=lambda e: asyncio.ensure_future(open_url("https://www.buymeacoffee.com/ChoiceZero","BLANK")),
-                                                    style=ButtonStyle(
-                                                        shape=RoundedRectangleBorder(radius=12),
+                                                    style=ft.ButtonStyle(
+                                                        shape=ft.RoundedRectangleBorder(radius=12),
                                                         padding=10,
-                                                        bgcolor=Colors.PRIMARY,
-                                                        color=Colors.SURFACE,
-                                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                        bgcolor=ft.Colors.PRIMARY,
+                                                        color=ft.Colors.SURFACE,
+                                                        overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                                     ),
                                                 ),
-                                                Button(
-                                                    margin=Margin.only(top=10),
-                                                    content=Text(value="GitHub Sponsors"),
+                                                ft.Button(
+                                                    margin=ft.Margin.only(top=10),
+                                                    content=ft.Text(value="GitHub Sponsors"),
                                                     icon=ft.CupertinoIcons.HEART_FILL, 
                                                     #on_click=lambda e: asyncio.ensure_future(open_url("https://www.buymeacoffee.com/ChoiceZero","BLANK")),
-                                                    style=ButtonStyle(
-                                                        shape=RoundedRectangleBorder(radius=12),
+                                                    style=ft.ButtonStyle(
+                                                        shape=ft.RoundedRectangleBorder(radius=12),
                                                         padding=10,
-                                                        bgcolor=Colors.PRIMARY,
-                                                        color=Colors.SURFACE,
-                                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                        bgcolor=ft.Colors.PRIMARY,
+                                                        color=ft.Colors.SURFACE,
+                                                        overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                                     ),
                                                 )
                                             ]))
                                         ]
                                     )
                                 ),
-                                Container(
+                                ft.Container(
                                     border_radius=20,
-                                    margin=Margin.only(left=10,right=10),
-                                    bgcolor=Colors.SECONDARY_CONTAINER,
+                                    margin=ft.Margin.only(left=10,right=10),
+                                    bgcolor=ft.Colors.SECONDARY_CONTAINER,
                                     padding=20,
-                                    content=Column(
+                                    content=ft.Column(
                                         controls=[
-                                            Row(controls=[
-                                                Icon(icon=Icons.CODE_ROUNDED,color=Colors.WHITE),
-                                                Text(value="Contribute", size=25, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
+                                            ft.Row(controls=[
+                                                ft.Icon(icon=ft.Icons.CODE_ROUNDED,color=ft.Colors.WHITE),
+                                                ft.Text(value="Contribute", size=25, color=ft.Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
                                             ]),
-                                            Text(value="Contribute code or report bugs in order to improve the project as a community effort.", size=15, color=Colors.WHITE),
-                                            Row(alignment=MainAxisAlignment.CENTER,controls=[
-                                                Button(
-                                                    align=Alignment.CENTER,
-                                                    margin=Margin.only(top=10),
-                                                    content=Text(value="QuickeR-Web"),
+                                            ft.Text(value="Contribute code or report bugs in order to improve the project as a community effort.", size=15, color=ft.Colors.WHITE),
+                                            ft.Row(alignment=ft.MainAxisAlignment.CENTER,controls=[
+                                                ft.Button(
+                                                    align=ft.Alignment.CENTER,
+                                                    margin=ft.Margin.only(top=10),
+                                                    content=ft.Text(value="QuickeR-Web"),
                                                     icon=get_github_icon_by_mode(True), 
                                                     on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
-                                                    style=ButtonStyle(
-                                                        shape=RoundedRectangleBorder(radius=12),
+                                                    style=ft.ButtonStyle(
+                                                        shape=ft.RoundedRectangleBorder(radius=12),
                                                         padding=10,
-                                                        bgcolor=Colors.PRIMARY,
-                                                        color=Colors.SURFACE,
-                                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                        bgcolor=ft.Colors.PRIMARY,
+                                                        color=ft.Colors.SURFACE,
+                                                        overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                                     ),
                                                 ),
-                                                Button(
-                                                    content=Text(value="Report a bug"),
-                                                    icon=Icons.BUG_REPORT_ROUNDED,
-                                                    margin=Margin.only(top=10),
+                                                ft.Button(
+                                                    content=ft.Text(value="Report a bug"),
+                                                    icon=ft.Icons.BUG_REPORT_ROUNDED,
+                                                    margin=ft.Margin.only(top=10),
                                                     on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web/issues","BLANK")),
-                                                    style=ButtonStyle(
-                                                        shape=RoundedRectangleBorder(radius=12),
+                                                    style=ft.ButtonStyle(
+                                                        shape=ft.RoundedRectangleBorder(radius=12),
                                                         padding=10,
-                                                        bgcolor=Colors.PRIMARY,
-                                                        color=Colors.SURFACE,
-                                                        overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                        bgcolor=ft.Colors.PRIMARY,
+                                                        color=ft.Colors.SURFACE,
+                                                        overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                                     ),
                                                 )
                                             ])   
                                         ]
                                     )
                                 ),
-                                Container(
+                                ft.Container(
                                     border_radius=20,
-                                    margin=Margin.only(left=10,right=10,bottom=10),
-                                    bgcolor=Colors.SECONDARY_CONTAINER,
+                                    margin=ft.Margin.only(left=10,right=10,bottom=10),
+                                    bgcolor=ft.Colors.SECONDARY_CONTAINER,
                                     padding=20,
-                                    content=Column(
+                                    content=ft.Column(
                                         controls=[
-                                            Row(controls=[
-                                                Icon(icon=Icons.SHARE_ROUNDED,color=Colors.WHITE),
-                                                Text(value="Share the app", size=25, color=Colors.WHITE,style=TextStyle(weight=FontWeight.BOLD)),
+                                            ft.Row(controls=[
+                                                ft.Icon(icon=ft.Icons.SHARE_ROUNDED,color=ft.Colors.WHITE),
+                                                ft.Text(value="Share the app", size=25, color=ft.Colors.WHITE,style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
                                             ]),
-                                            Text(value="Help spread the word about the app and recommend it to others. The more users, the more interest in the project!", size=15, color=Colors.WHITE),
-                                            Button(
-                                                align=Alignment.CENTER,
-                                                content=Text(value="Copy link to clipboard"),
-                                                icon=Icons.COPY_ALL_ROUNDED,
-                                                margin=Margin.only(top=10),
+                                            ft.Text(value="Help spread the word about the app and recommend it to others. The more users, the more interest in the project!", size=15, color=ft.Colors.WHITE),
+                                            ft.Button(
+                                                align=ft.Alignment.CENTER,
+                                                content=ft.Text(value="Copy link to clipboard"),
+                                                icon=ft.Icons.COPY_ALL_ROUNDED,
+                                                margin=ft.Margin.only(top=10),
                                                 on_click=lambda e: asyncio.ensure_future(copy_text_to_clipboard("https://choicezero.github.io/QuickeR-Web/")),
-                                                style=ButtonStyle(
-                                                    shape=RoundedRectangleBorder(radius=12),
+                                                style=ft.ButtonStyle(
+                                                    shape=ft.RoundedRectangleBorder(radius=12),
                                                     padding=10,
-                                                    bgcolor=Colors.PRIMARY,
-                                                    color=Colors.SURFACE,
-                                                    overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                                    bgcolor=ft.Colors.PRIMARY,
+                                                    color=ft.Colors.SURFACE,
+                                                    overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                                 ),
                                             )
                                         ]
@@ -623,136 +619,136 @@ def main(page: Page):
                                 ),
                             ])]
                         ),
-                        Text(value="General information", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
-                        Container(
+                        ft.Text(value="General information", size=17, color=ft.Colors.WHITE, margin=ft.Margin.only(left=20, right=20, top=15)),
+                        ft.Container(
                             width=page.width,
                             border_radius=20,
                             padding=20,
-                            margin=Margin.only(left=20, right=20, bottom=5),
-                            bgcolor=Colors.SURFACE_CONTAINER_HIGH,
-                            content=Column(controls=[
-                                Row(controls=[
-                                    Icon(icon=Icons.NUMBERS_ROUNDED, size=15, color=Colors.PRIMARY),
-                                    Text(value=("Version"), size=15, color=Colors.GREY_400),
-                                    Container(expand=True),
-                                    Text(value=APP_VERSION, size=15, color=Colors.PRIMARY)
+                            margin=ft.Margin.only(left=20, right=20, bottom=5),
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                            content=ft.Column(controls=[
+                                ft.Row(controls=[
+                                    ft.Icon(icon=ft.Icons.NUMBERS_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                    ft.Text(value=("Version"), size=15, color=ft.Colors.GREY_400),
+                                    ft.Container(expand=True),
+                                    ft.Text(value=APP_VERSION, size=15, color=ft.Colors.PRIMARY)
                                 ]),
-                                Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                                Row(controls=[
-                                    Icon(icon=Icons.LIBRARY_BOOKS_ROUNDED, size=15, color=Colors.PRIMARY),
-                                    Text(value=("License"), size=15, color=Colors.GREY_400),
-                                    Container(expand=True),
-                                    Text(value="MIT License", size=15, color=Colors.PRIMARY)
+                                ft.Divider(color=ft.Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                                ft.Row(controls=[
+                                    ft.Icon(icon=ft.Icons.LIBRARY_BOOKS_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                    ft.Text(value=("License"), size=15, color=ft.Colors.GREY_400),
+                                    ft.Container(expand=True),
+                                    ft.Text(value="MIT License", size=15, color=ft.Colors.PRIMARY)
                                 ]), 
-                                Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                                Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                                    Row(controls=[
-                                        Icon(icon=Icons.PERSON_2_ROUNDED, size=15, color=Colors.PRIMARY),
-                                        Text(value=("Developed by"), size=15, color=Colors.GREY_400),
+                                ft.Divider(color=ft.Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                                ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                    ft.Row(controls=[
+                                        ft.Icon(icon=ft.Icons.PERSON_2_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                        ft.Text(value=("Developed by"), size=15, color=ft.Colors.GREY_400),
                                     ]),
-                                    Text(value="Unax Martinez Llorente (aka ChoiceZero).", size=15, color=Colors.WHITE)
+                                    ft.Text(value="Unax Martinez Llorente (aka ChoiceZero).", size=15, color=ft.Colors.WHITE)
                                 ]),
                             ])
                         ),
-                        Text(value="Links", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
-                        Container(
+                        ft.Text(value="Links", size=17, color=ft.Colors.WHITE, margin=ft.Margin.only(left=20, right=20, top=15)),
+                        ft.Container(
                             width=page.width,
                             border_radius=20,
                             padding=20,
-                            margin=Margin.only(left=20, right=20, bottom=5),
-                            bgcolor=Colors.SURFACE_CONTAINER_HIGH,
-                            content=Column(controls=[
-                                Row(controls=[
-                                    Icon(icon=Icons.INSERT_LINK_ROUNDED, size=15, color=Colors.PRIMARY),
-                                    Text(value=("Repository"), size=15, color=Colors.GREY_400),
-                                    Container(expand=True),
-                                    Button(
-                                        content=Text(value="QuickeR-Web"),
+                            margin=ft.Margin.only(left=20, right=20, bottom=5),
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                            content=ft.Column(controls=[
+                                ft.Row(controls=[
+                                    ft.Icon(icon=ft.Icons.INSERT_LINK_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                    ft.Text(value=("Repository"), size=15, color=ft.Colors.GREY_400),
+                                    ft.Container(expand=True),
+                                    ft.Button(
+                                        content=ft.Text(value="QuickeR-Web"),
                                         icon=get_github_icon_by_mode(True), 
                                         on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
-                                        style=ButtonStyle(
-                                            shape=RoundedRectangleBorder(radius=12),
+                                        style=ft.ButtonStyle(
+                                            shape=ft.RoundedRectangleBorder(radius=12),
                                             padding=10,
-                                            bgcolor=Colors.PRIMARY,
-                                            color=Colors.SURFACE,
-                                            overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                            bgcolor=ft.Colors.PRIMARY,
+                                            color=ft.Colors.SURFACE,
+                                            overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                         ),
                                     )
                                 ]),
-                                Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                                Row(controls=[
-                                    Icon(icon=Icons.INSERT_LINK_ROUNDED, size=15, color=Colors.PRIMARY),
-                                    Text(value=("Bugs"), size=15, color=Colors.GREY_400),
-                                    Container(expand=True),
-                                    Button(
-                                        content=Text(value="Report a bug"),
-                                        icon=Icons.BUG_REPORT_ROUNDED,
+                                ft.Divider(color=ft.Colors.SURFACE_CONTAINER_LOW, thickness=2),
+                                ft.Row(controls=[
+                                    ft.Icon(icon=ft.Icons.INSERT_LINK_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                    ft.Text(value=("Bugs"), size=15, color=ft.Colors.GREY_400),
+                                    ft.Container(expand=True),
+                                    ft.Button(
+                                        content=ft.Text(value="Report a bug"),
+                                        icon=ft.Icons.BUG_REPORT_ROUNDED,
                                         on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK")),
-                                        style=ButtonStyle(
-                                            shape=RoundedRectangleBorder(radius=12),
+                                        style=ft.ButtonStyle(
+                                            shape=ft.RoundedRectangleBorder(radius=12),
                                             padding=10,
-                                            bgcolor=Colors.PRIMARY,
-                                            color=Colors.SURFACE,
-                                            overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                            bgcolor=ft.Colors.PRIMARY,
+                                            color=ft.Colors.SURFACE,
+                                            overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                         ),
                                     )
                                 ]),
-                                Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                                Row(controls=[
-                                    Icon(icon=Icons.INSERT_LINK_ROUNDED, size=15, color=Colors.PRIMARY),
-                                    Text(value=("Release notes"), size=15, color=Colors.GREY_400),
-                                    Container(expand=True),
-                                    Button(
-                                        content=Text(value="Release notes"),
-                                        icon=Icons.NEW_RELEASES_ROUNDED,
+                                ft.Divider(color=ft.Colors.SURFACE_CONTAINER_LOW, thickness=2),
+                                ft.Row(controls=[
+                                    ft.Icon(icon=ft.Icons.INSERT_LINK_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                    ft.Text(value=("Release notes"), size=15, color=ft.Colors.GREY_400),
+                                    ft.Container(expand=True),
+                                    ft.Button(
+                                        content=ft.Text(value="Release notes"),
+                                        icon=ft.Icons.NEW_RELEASES_ROUNDED,
                                         on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web/releases","BLANK")),
-                                        style=ButtonStyle(
-                                            shape=RoundedRectangleBorder(radius=12),
+                                        style=ft.ButtonStyle(
+                                            shape=ft.RoundedRectangleBorder(radius=12),
                                             padding=10,
-                                            bgcolor=Colors.PRIMARY,
-                                            color=Colors.SURFACE,
-                                            overlay_color=Colors.ON_PRIMARY_CONTAINER
+                                            bgcolor=ft.Colors.PRIMARY,
+                                            color=ft.Colors.SURFACE,
+                                            overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
                                         ),
                                     )
                                 ]),
                             ])
                         ),
-                        Text(value="Privacy", size=17, color=Colors.WHITE, margin=Margin.only(left=20, right=20, top=15)),
-                        Container(
+                        ft.Text(value="Privacy", size=17, color=ft.Colors.WHITE, margin=ft.Margin.only(left=20, right=20, top=15)),
+                        ft.Container(
                             width=page.width,
                             border_radius=20,
                             padding=20,
-                            margin=Margin.only(left=20, right=20, bottom=5),
-                            bgcolor=Colors.SURFACE_CONTAINER_HIGH,
-                            content=Column(controls=[
-                                Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                                    Row(controls=[
-                                        Icon(icon=Icons.DISABLED_VISIBLE_ROUNDED, size=15, color=Colors.PRIMARY),
-                                        Text(value=("Private"), size=15, color=Colors.GREY_400),
+                            margin=ft.Margin.only(left=20, right=20, bottom=5),
+                            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                            content=ft.Column(controls=[
+                                ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                    ft.Row(controls=[
+                                        ft.Icon(icon=ft.Icons.DISABLED_VISIBLE_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                        ft.Text(value=("Private"), size=15, color=ft.Colors.GREY_400),
                                     ]),
-                                    Text(value="No telemetry or analytics are used.", size=15, color=Colors.WHITE)  
+                                    ft.Text(value="No telemetry or analytics are used.", size=15, color=ft.Colors.WHITE)  
                                 ]),
-                                Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                                Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                                    Row(controls=[
-                                        Icon(icon=Icons.EDIT_ROUNDED, size=15, color=Colors.PRIMARY),
-                                        Text(value=("Open source"), size=15, color=Colors.GREY_400),
+                                ft.Divider(color=ft.Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                                ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                    ft.Row(controls=[
+                                        ft.Icon(icon=ft.Icons.EDIT_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                        ft.Text(value=("Open source"), size=15, color=ft.Colors.GREY_400),
                                     ]),
-                                    Text(value="Fully open source and auditable.", size=15, color=Colors.WHITE)  
+                                    ft.Text(value="Fully open source and auditable.", size=15, color=ft.Colors.WHITE)  
                                 ]),
-                                Divider(color=Colors.SURFACE_CONTAINER_LOW,thickness=2),
-                                Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                                    Row(controls=[
-                                        Icon(icon=Icons.VERIFIED_USER_ROUNDED, size=15, color=Colors.PRIMARY),
-                                        Text(value=("Personal"), size=15, color=Colors.GREY_400),
+                                ft.Divider(color=ft.Colors.SURFACE_CONTAINER_LOW,thickness=2),
+                                ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                                    ft.Row(controls=[
+                                        ft.Icon(icon=ft.Icons.VERIFIED_USER_ROUNDED, size=15, color=ft.Colors.PRIMARY),
+                                        ft.Text(value=("Personal"), size=15, color=ft.Colors.GREY_400),
                                     ]),
-                                    Text(value="No private data is collected or stored.", size=15, color=Colors.WHITE)
+                                    ft.Text(value="No private data is collected or stored.", size=15, color=ft.Colors.WHITE)
                                 ]),
                             ])
                         ),
-                        Row(alignment=MainAxisAlignment.CENTER,controls=[Text(value="Made with ❤️ in Spain.", size=15, color=Colors.GREY_400)]),
-                        Text(value="© 2026 Unax Martinez Llorente.", size=15, color=Colors.GREY_400),
-                        Container(height=50),    
+                        ft.Row(alignment=ft.MainAxisAlignment.CENTER,controls=[ft.Text(value="Made with ❤️ in Spain.", size=15, color=ft.Colors.GREY_400)]),
+                        ft.Text(value="© 2026 Unax Martinez Llorente.", size=15, color=ft.Colors.GREY_400),
+                        ft.Container(height=50),    
                     ]
                 )
             )
@@ -760,36 +756,36 @@ def main(page: Page):
         
     ##CREATE BOTTOM SHEET (lazy-built) --------------------------------------------------------------
     def build_create_bs():
-        qr_type_dropdown = Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
-            DropdownOption(text="URL/Link",leading_icon=Icons.LINK_ROUNDED),
-            DropdownOption(text="Text",leading_icon=Icons.TEXT_FIELDS_ROUNDED),
-            DropdownOption(text="WIFI",leading_icon=Icons.WIFI_ROUNDED),
-            DropdownOption(text="Email",leading_icon=Icons.MAIL_OUTLINE_ROUNDED),
-            DropdownOption(text="Phone",leading_icon=Icons.PHONE_ANDROID_ROUNDED),
-            DropdownOption(text="Location",leading_icon=Icons.PIN_DROP_ROUNDED),
-            DropdownOption(text="SMS",leading_icon=Icons.MESSAGE_ROUNDED),
-            DropdownOption(text="Event",leading_icon=Icons.STAR_BORDER_ROUNDED),
+        qr_type_dropdown = ft.Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
+            ft.DropdownOption(text="URL/Link",leading_icon=ft.Icons.LINK_ROUNDED),
+            ft.DropdownOption(text="Text",leading_icon=ft.Icons.TEXT_FIELDS_ROUNDED),
+            ft.DropdownOption(text="WIFI",leading_icon=ft.Icons.WIFI_ROUNDED),
+            ft.DropdownOption(text="Email",leading_icon=ft.Icons.MAIL_OUTLINE_ROUNDED),
+            ft.DropdownOption(text="Phone",leading_icon=ft.Icons.PHONE_ANDROID_ROUNDED),
+            ft.DropdownOption(text="Location",leading_icon=ft.Icons.PIN_DROP_ROUNDED),
+            ft.DropdownOption(text="SMS",leading_icon=ft.Icons.MESSAGE_ROUNDED),
+            ft.DropdownOption(text="Event",leading_icon=ft.Icons.STAR_BORDER_ROUNDED),
         ])
 
         #URL
-        url_protocol_dropdown = Dropdown(value="https://",border_width=0,options=[
-            DropdownOption(text="https://"),
-            DropdownOption(text="http://"),
+        url_protocol_dropdown = ft.Dropdown(value="https://",border_width=0,options=[
+            ft.DropdownOption(text="https://"),
+            ft.DropdownOption(text="http://"),
             ])
 
         #WIFI
-        wifi_name= TextField(
+        wifi_name= ft.TextField(
             expand=True,
             border_width=0,
             label="Enter network name",
             on_change=lambda e: prop_changed()
         )
 
-        wifi_protocol_dropdown = Dropdown(value="WPA2",border_width=0,on_select=lambda e: wifi_protocol_changed(e),options=[
-            DropdownOption(text="WPA2"),
-            DropdownOption(text="WPA"),
-            DropdownOption(text="WEP"),
-            DropdownOption(text="No password"),
+        wifi_protocol_dropdown = ft.Dropdown(value="WPA2",border_width=0,on_select=lambda e: wifi_protocol_changed(e),options=[
+            ft.DropdownOption(text="WPA2"),
+            ft.DropdownOption(text="WPA"),
+            ft.DropdownOption(text="WEP"),
+            ft.DropdownOption(text="No password"),
         ])
 
         def wifi_protocol_changed(e):
@@ -800,73 +796,73 @@ def main(page: Page):
                 wifi_password_setting.visible = True
             prop_changed()
 
-        wifi_password= TextField(
+        wifi_password= ft.TextField(
             expand=True,
             border_width=0,
             label="Enter network password",
             on_change=lambda e: prop_changed()
         )
 
-        wifi_password_setting= Column(visible=True,controls=[
-            Divider(color="grey"),
-            Row(alignment=MainAxisAlignment.START,controls=[
-                Icon(icon=Icons.PASSWORD_ROUNDED),
-                Text(value=("WIFI password"), size=20),
+        wifi_password_setting= ft.Column(visible=True,controls=[
+            ft.Divider(color=ft.Colors.GREY),
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
+                ft.Icon(icon=ft.Icons.PASSWORD_ROUNDED),
+                ft.Text(value=("WIFI password"), size=20),
             ]),
-            Container(border_radius=10,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_password),
+            ft.Container(border_radius=10,bgcolor=ft.Colors.SURFACE_CONTAINER,content=wifi_password),
         ])
 
-        wifi_area = Column(visible=False,controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[
-                Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
-                Text(value=("Network name"), size=20),
+        wifi_area = ft.Column(visible=False,controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
+                ft.Icon(icon=ft.Icons.TEXT_FIELDS_ROUNDED),
+                ft.Text(value=("Network name"), size=20),
             ]),
-            Container(border_radius=10,
-                bgcolor=Colors.SURFACE_CONTAINER,
+            ft.Container(border_radius=10,
+                bgcolor=ft.Colors.SURFACE_CONTAINER,
                 content=wifi_name
             ),
-            Divider(color="grey"),
-            Container(
-                content=Row(controls=[
-                    Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
-                    Container(expand=True,content=Text(
+            ft.Divider(color=ft.Colors.GREY),
+            ft.Container(
+                content=ft.Row(controls=[
+                    ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.    Colors.WHITE),
+                    ft.Container(expand=True,content=ft.Text(
                         value="If your network has no password, select it here!",
                         size=16,
-                        color=Colors.WHITE
+                        color=ft.Colors.WHITE
                     )),
                     ],
                 ),
                 padding=15,
-                bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
-                margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,
+                margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
             ),
-            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                Row(controls=[
-                Icon(icon=Icons.SHIELD),
-                Text(value=("WIFI security protocol"), size=20),
+            ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                ft.Row(controls=[
+                ft.Icon(icon=ft.Icons.SHIELD),
+                ft.Text(value=("WIFI security protocol"), size=20),
                 ]),
-                Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_protocol_dropdown)
+                ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=wifi_protocol_dropdown)
             ]),
             wifi_password_setting
         ])
 
         # Email
-        email_address = TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
-        email_adv_checkbox = Switch(value=False, on_change=lambda e: email_checkbox_changed())
-        email_general_content=Column(visible=False,controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[
-                Icon(icon=Icons.MAIL_ROUNDED),
-                Text(value=("Address"), size=20),
+        email_address = ft.TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
+        email_adv_checkbox = ft.Switch(value=False, on_change=lambda e: email_checkbox_changed())
+        email_general_content=ft.Column(visible=False,controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
+                ft.Icon(icon=ft.Icons.MAIL_ROUNDED),
+                ft.Text(value=("Address"), size=20),
             ]),
-            Container(border_radius=10,
-                bgcolor=Colors.SURFACE_CONTAINER,
+            ft.Container(border_radius=10,
+                bgcolor=ft.Colors.SURFACE_CONTAINER,
                 content=email_address
             ),
-            Divider(color="grey"),
-            Row(alignment=MainAxisAlignment.START,controls=[
-                Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
-                Text(value=("Advanced options"), size=20),
-                Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=email_adv_checkbox)
+            ft.Divider(color=ft.Colors.GREY),
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
+                ft.Icon(icon=ft.Icons.TEXT_FIELDS_ROUNDED),
+                ft.Text(value=("Advanced options"), size=20),
+                ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=email_adv_checkbox)
             ]),
         ])
 
@@ -878,28 +874,28 @@ def main(page: Page):
                 email_adv_content.visible = False
             prop_changed()
 
-        email_subject = TextField(expand=True, border_width=0, label="Subject", on_change=lambda e: prop_changed())
-        email_body = TextField(expand=True, border_width=0, label="Body", multiline=True, on_change=lambda e: prop_changed())
-        email_adv_content = Column(visible=False, controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SUBJECT_ROUNDED), Text(value="Subject", size=20)]),
-            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_subject),
-            Divider(color="grey"),
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.TEXT_FIELDS_ROUNDED), Text(value="Body", size=20)]),
-            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_body),
+        email_subject = ft.TextField(expand=True, border_width=0, label="Subject", on_change=lambda e: prop_changed())
+        email_body = ft.TextField(expand=True, border_width=0, label="Body", multiline=True, on_change=lambda e: prop_changed())
+        email_adv_content = ft.Column(visible=False, controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.SUBJECT_ROUNDED), ft.Text(value="Subject", size=20)]),
+            ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=email_subject),
+            ft.Divider(color=ft.Colors.GREY),
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.TEXT_FIELDS_ROUNDED), ft.Text(value="Body", size=20)]),
+            ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=email_body),
         ])
 
         # Phone
-        phone_prefix = TextField(
+        phone_prefix = ft.TextField(
             border_width=0,
             label="",
             hint_text="",
             width=80,
             max_length=4,
-            counter=Container(),
+            counter=ft.Container(),
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=lambda e: prop_changed()
         )
-        phone_number = TextField(
+        phone_number = ft.TextField(
             expand=True,
             border_width=0,
             label="Enter address",
@@ -907,85 +903,85 @@ def main(page: Page):
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=lambda e: prop_changed()
         )   
-        phone_general_content=Column(visible=False,controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[
-                Icon(icon=Icons.CALL_ROUNDED),
-                Text(value=("Phone number"), size=20),
+        phone_general_content=ft.Column(visible=False,controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
+                ft.Icon(icon=ft.Icons.CALL_ROUNDED),
+                ft.Text(value=("Phone number"), size=20),
             ]),
-            Row(
+            ft.Row(
                 expand=True,
                 controls=[
-                Container(
+                ft.Container(
                     border_radius=10,
-                    bgcolor=Colors.SURFACE_CONTAINER,
-                    content=Row(controls=[
-                        Text("+",margin=Margin(left=15),size=15),
+                    bgcolor=ft.Colors.SURFACE_CONTAINER,
+                    content=ft.Row(controls=[
+                        ft.Text("+",margin=ft.Margin(left=15),size=15),
                         phone_prefix
                     ])
                 ),
-                Container(
+                ft.Container(
                     expand=True,
                     border_radius=10,
-                    bgcolor=Colors.SURFACE_CONTAINER,
+                    bgcolor=ft.Colors.SURFACE_CONTAINER,
                     content=phone_number
                 ),
             ])
         ]) 
 
         # SMS
-        sms_prefix = TextField(
+        sms_prefix = ft.TextField(
             border_width=0,
             label="",
             hint_text="",
             width=80,
             max_length=4,
-            counter=Container(),
+            counter=ft.Container(),
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=lambda e: prop_changed()
         )
-        sms_number = TextField(
+        sms_number = ft.TextField(
             expand=True,
             border_width=0,
             label="Enter phone number",
             keyboard_type=ft.KeyboardType.NUMBER,
             on_change=lambda e: prop_changed()
         )
-        sms_message = TextField(expand=True, border_width=0, label="Enter message", multiline=True, on_change=lambda e: prop_changed())
+        sms_message = ft.TextField(expand=True, border_width=0, label="Enter message", multiline=True, on_change=lambda e: prop_changed())
 
-        sms_general_content = Column(visible=False, controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SMS_ROUNDED), Text(value="Phone number", size=20)]),
-            Row(controls=[
-                Container(
+        sms_general_content = ft.Column(visible=False, controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.SMS_ROUNDED), ft.Text(value="Phone number", size=20)]),
+            ft.Row(controls=[
+                ft.Container(
                     border_radius=10,
-                    bgcolor=Colors.SURFACE_CONTAINER,
-                    content=Row(controls=[Text("+", margin=Margin(left=15), size=15), sms_prefix])
+                    bgcolor=ft.Colors.SURFACE_CONTAINER,
+                    content=ft.Row(controls=[ft.Text("+", margin=ft.Margin(left=15), size=15), sms_prefix])
                 ),
-                Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=sms_number),
+                ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=sms_number),
             ]),
-            Divider(color="grey"),
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.MESSAGE_ROUNDED), Text(value="Message", size=20)]),
-            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=sms_message),
+            ft.Divider(color="grey"),
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.MESSAGE_ROUNDED), ft.Text(value="Message", size=20)]),
+            ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=sms_message),
         ])
 
         # Location
-        location_lat = TextField(expand=True, border_width=0, label="Latitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
-        location_lng = TextField(expand=True, border_width=0, label="Longitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
+        location_lat = ft.TextField(expand=True, border_width=0, label="Latitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
+        location_lng = ft.TextField(expand=True, border_width=0, label="Longitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
 
-        location_general_content = Column(visible=False, controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Coordinates", size=20)]),
-            Row(controls=[
-                Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lat),
-                Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lng),
+        location_general_content = ft.Column(visible=False, controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.PIN_DROP_ROUNDED), ft.Text(value="Coordinates", size=20)]),
+            ft.Row(controls=[
+                ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lat),
+                ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lng),
             ]),
         ])
 
         # Event (vCalendar/iCal)
-        event_title = TextField(expand=True, border_width=0, label="Event title", on_change=lambda e: prop_changed())
-        event_location = TextField(expand=True, border_width=0, label="Location", on_change=lambda e: prop_changed())
+        event_title = ft.TextField(expand=True, border_width=0, label="Event title", on_change=lambda e: prop_changed())
+        event_location = ft.TextField(expand=True, border_width=0, label="Location", on_change=lambda e: prop_changed())
 
-        date_picker = DateRangePicker(open=False, on_change=lambda e: prop_changed())
-        start_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
-        end_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
+        date_picker = ft.DateRangePicker(open=False, on_change=lambda e: prop_changed())
+        start_time_picker = ft.TimePicker(open=False, on_change=lambda e: prop_changed())
+        end_time_picker = ft.TimePicker(open=False, on_change=lambda e: prop_changed())
 
         page.overlay.append(date_picker)
         page.overlay.append(start_time_picker)
@@ -1003,97 +999,97 @@ def main(page: Page):
             end_time_picker.open = True
             page.update()
 
-        date_picker_button = Button(content="Date period",icon=Icons.CALENDAR_MONTH_ROUNDED, on_click=lambda e: open_date_picker(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick date range")
-        start_time_picker_button = Button(content="Start time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_start_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick start time")
-        end_time_picker_button = Button(content="End time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
+        date_picker_button = ft.Button(content="Date period",icon=ft.Icons.CALENDAR_MONTH_ROUNDED, on_click=lambda e: open_date_picker(e), style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), bgcolor={"": ft.Colors.SURFACE_CONTAINER}), tooltip="Pick date range")
+        start_time_picker_button = ft.Button(content="Start time",icon=ft.Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_start_time(e), style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), bgcolor={"": ft.Colors.SURFACE_CONTAINER}), tooltip="Pick start time")
+        end_time_picker_button = ft.Button(content="End time",icon=ft.Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), bgcolor={"": ft.Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
 
-        event_general_content = Column(visible=False, controls=[
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20)]),
-            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_title),
-            Divider(color="grey"),
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20)]),
-            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location),
-            Divider(color="grey"),
-            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20)]),
-            Container(
-                content=Row(controls=[
-                    Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
-                    Container(expand=True,content=Text(
+        event_general_content = ft.Column(visible=False, controls=[
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.STAR_BORDER_ROUNDED), ft.Text(value="Event title", size=20)]),
+            ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=event_title),
+            ft.Divider(color="grey"),
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.PIN_DROP_ROUNDED), ft.Text(value="Location", size=20)]),
+            ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=event_location),
+            ft.Divider(color="grey"),
+            ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.ACCESS_TIME_ROUNDED), ft.Text(value="Date and time", size=20)]),
+            ft.Container(
+                content=ft.Row(controls=[
+                    ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.Colors.WHITE),
+                    ft.Container(expand=True,content=ft.Text(
                         value="Please change all fields below here!",
                         size=16,
-                        color=Colors.WHITE
+                        color=ft.Colors.WHITE
                     )),
                     ],
                 ),
                 padding=15,
-                bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
-                margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,
+                margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
             ),
-            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+            ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
                 date_picker_button,
                 start_time_picker_button,
                 end_time_picker_button,
             ]),
         ])
 
-        qr_url_input_field = TextField(expand=True,border_width=0,label="Enter URL or text",on_change=lambda e: prop_changed())
-        error_correction_dropdown = Dropdown(value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
-            DropdownOption(text="L (7%)"),
-            DropdownOption(text="M (15%)"),
-            DropdownOption(text="Q (25%)"),
-            DropdownOption(text="H (30%)"),
+        qr_url_input_field = ft.TextField(expand=True,border_width=0,label="Enter URL or text",on_change=lambda e: prop_changed())
+        error_correction_dropdown = ft.Dropdown(value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
+            ft.DropdownOption(text="L (7%)"),
+            ft.DropdownOption(text="M (15%)"),
+            ft.DropdownOption(text="Q (25%)"),
+            ft.DropdownOption(text="H (30%)"),
             ])
         qr_color_scheme_primary = MaterialPicker(on_color_change=lambda e:prop_changed(),color="black")
         qr_color_scheme_secondary = MaterialPicker(on_color_change=lambda e:prop_changed(),color="white")
 
-        preview_qr_area= Row(controls=[], alignment=ft.MainAxisAlignment.CENTER,expand=False, tight=True)
+        preview_qr_area= ft.Row(controls=[], alignment=ft.MainAxisAlignment.CENTER,expand=False, tight=True)
 
-        input_row = Column(controls=[
-            Row(controls=[
-                Icon(icon=Icons.SHORT_TEXT_ROUNDED),
-                Text(value=("Content"), size=20)
+        input_row = ft.Column(controls=[
+            ft.Row(controls=[
+                ft.Icon(icon=ft.Icons.SHORT_TEXT_ROUNDED),
+                ft.Text(value=("Content"), size=20)
             ]),
-            Row(visible=True,controls=[
-                Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),
-                Container(border_radius=10,expand=True,bgcolor=Colors.SURFACE_CONTAINER,content=qr_url_input_field),
+            ft.Row(visible=True,controls=[
+                ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),
+                ft.Container(border_radius=10,expand=True,bgcolor=ft.Colors.SURFACE_CONTAINER,content=qr_url_input_field),
             ]),
         ])
 
-        create_layout= BottomSheet(draggable=False,use_safe_area=True,scrollable=False,fullscreen=True,open=False,on_dismiss=lambda e: clean_create_bs_up(),content=
-            Column(horizontal_alignment="center",scroll=ScrollMode.AUTO,controls=[
-                Container(bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,expand=False,content=preview_qr_area,padding=20,),
-                Container(bgcolor=Colors.SECONDARY_CONTAINER,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                    Row(alignment="center",controls=[
-                        IconButton(
-                            icon=Icons.CLOSE,
+        create_layout= ft.BottomSheet(draggable=False,use_safe_area=True,scrollable=False,fullscreen=True,open=False,on_dismiss=lambda e: clean_create_bs_up(),content=
+            ft.Column(horizontal_alignment="center",scroll=ft.ScrollMode.AUTO,controls=[
+                ft.Container(bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,expand=False,content=preview_qr_area,padding=20,),
+                ft.Container(bgcolor=ft.Colors.SECONDARY_CONTAINER,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
+                    ft.Row(alignment="center",controls=[
+                        ft.IconButton(
+                            icon=ft.Icons.CLOSE,
                             expand=True, 
                             on_click=lambda e: clean_create_bs_up(),    
-                            style=ButtonStyle(
-                                shape=RoundedRectangleBorder(radius=12),
-                                bgcolor={"": Colors.RED_500}, 
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=12),
+                                bgcolor={"": ft.Colors.RED_500}, 
                             )
                         ),
-                        IconButton(
-                            icon=Icons.CHECK,
+                        ft.IconButton(
+                            icon=ft.Icons.CHECK,
                             expand=True,
                             on_click=lambda e: qr_create_triggered(), 
-                            style=ButtonStyle(
-                                shape=RoundedRectangleBorder(radius=12),
-                                bgcolor={"": Colors.INVERSE_PRIMARY}, 
+                            style=ft.ButtonStyle(
+                                shape=ft.RoundedRectangleBorder(radius=12),
+                                bgcolor={"": ft.Colors.INVERSE_PRIMARY}, 
                             )
                         ),
                     ])
                 ),
-                Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                    Column(controls=[
-                        Row(expand=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                            Row(tight=False,controls=[
-                                Icon(icon=Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
-                                Text(value=("QR Type"), size=20),
+                ft.Container(bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
+                    ft.Column(controls=[
+                        ft.Row(expand=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                            ft.Row(tight=False,controls=[
+                                ft.Icon(icon=ft.Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
+                                ft.Text(value=("QR Type"), size=20),
                             ]),
-                            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=qr_type_dropdown)
+                            ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=qr_type_dropdown)
                         ]),
-                        Divider(color="grey"),
+                        ft.Divider(color="grey"),
                         wifi_area,
                         input_row,
                         email_general_content,
@@ -1102,59 +1098,59 @@ def main(page: Page):
                         sms_general_content,
                         location_general_content,
                         event_general_content,
-                        Divider(color="grey"),
-                        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                            Row(controls=[
-                                Icon(icon=Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
-                                Text(value=("Error correction level"), size=20),
+                        ft.Divider(color="grey"),
+                        ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                            ft.Row(controls=[
+                                ft.Icon(icon=ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
+                                ft.Text(value=("Error correction level"), size=20),
                             ]),
-                            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=error_correction_dropdown)
+                            ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=error_correction_dropdown)
                         ]), 
                     ])
                 ),
-                Text(value="Customization", size=18,color=Colors.PRIMARY),
-                Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                    Column(controls=[
-                        Row(controls=[Icon(icon=Icons.ADD_PHOTO_ALTERNATE_ROUNDED),Text(value=("Logo/Branding"), size=20)]),
-                        Container(
-                            content=Row(controls=[
-                                Icon(icon=Icons.ERROR_OUTLINE_ROUNDED,color=Colors.WHITE),
-                                Container(expand=True,content=Text(
+                ft.Text(value="Customization", size=18,color=ft.Colors.PRIMARY),
+                ft.Container(bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
+                    ft.Column(controls=[
+                        ft.Row(controls=[ft.Icon(icon=ft.Icons.ADD_PHOTO_ALTERNATE_ROUNDED),ft.Text(value=("Logo/Branding"), size=20)]),
+                        ft.Container(
+                            content=ft.Row(controls=[
+                                ft.Icon(icon=ft.Icons.ERROR_OUTLINE_ROUNDED,color=ft.Colors.WHITE),
+                                ft.Container(expand=True,content=ft.Text(
                                     value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, it is highly recommended that H level error correction is used.",
                                     size=16,
-                                    color=Colors.WHITE
+                                    color=ft.Colors.WHITE
                                 )),
                                 ],
                             ),
                             padding=15,
-                            bgcolor=Colors.RED_500,border_radius=30,
-                            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                            bgcolor=ft.Colors.RED_500,border_radius=30,
+                            margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
                         ),
-                        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                            Button(content="Pick image from folder",icon=Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
-                            Button(content="Remove logo",icon=Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
+                        ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                            ft.Button(content="Pick image from folder",icon=ft.Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
+                            ft.Button(content="Remove logo",icon=ft.Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
                         ]),
-                        Divider(color="grey"),
-                        Text(value=("Color scheme"), size=20, color=Colors.PRIMARY),
-                        Container(
-                            content=Row(controls=[
-                                Icon(icon=Icons.WARNING_AMBER_ROUNDED,color=Colors.WHITE),
-                                Container(expand=True,content=Text(
+                        ft.Divider(color="grey"),
+                        ft.Text(value=("Color scheme"), size=20, color=ft.Colors.PRIMARY),
+                        ft.Container(
+                            content=ft.Row(controls=[
+                                ft.Icon(icon=ft.Icons.WARNING_AMBER_ROUNDED,color=ft.Colors.WHITE),
+                                ft.Container(expand=True,content=ft.Text(
                                     value="Due to c based tools not being supported on WASM, color checking is not available. Please be sensible with the colors you choose and ensure that the foreground color is always clearly darker.",
                                     size=16,
-                                    color=Colors.WHITE
+                                    color=ft.Colors.WHITE
                                 )),
                                 ],
                             ),
                             padding=15,
-                            bgcolor=Colors.ORANGE_500,border_radius=30,
-                            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                            bgcolor=ft.Colors.ORANGE_500,border_radius=30,
+                            margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
                         ),
-                        ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
-                        ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
+                        ft.ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
+                        ft.ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
                     ])
                 ),
-                Container(height=50)
+                ft.Container(height=50)
             ]),
         )
 
@@ -1367,57 +1363,57 @@ def main(page: Page):
         error_correction_content.value = cb.error_correction_dropdown.value
 
 
-    create_button = Button(
-        icon=Icon(icon=Icons.ADD_ROUNDED, size=24), 
-        content=Text(value="Generate a new QR code",size=24),
+    create_button = ft.Button(
+        icon=ft.Icon(icon=ft.Icons.ADD_ROUNDED, size=24), 
+        content=ft.Text(value="Generate a new QR code",size=24),
         on_click=lambda e: qr_creator_open(),
-        align=Alignment.CENTER,
+        align=ft.Alignment.CENTER,
         height=70,
         style=ft.ButtonStyle(
-            shape=RoundedRectangleBorder(radius=20)
+            shape=ft.RoundedRectangleBorder(radius=20)
         )
     )
 
-    download_button = Button(
-        icon=Icon(icon=Icons.DOWNLOAD_ROUNDED, size=20), 
-        align=Alignment.CENTER,
-        content=Text(value="Download",size=20),
+    download_button = ft.Button(
+        icon=ft.Icon(icon=ft.Icons.DOWNLOAD_ROUNDED, size=20), 
+        align=ft.Alignment.CENTER,
+        content=ft.Text(value="Download",size=20),
         on_click=lambda e: show_download_confirm_dialog(),
         height=40,
-        margin=Margin(right=5),
+        margin=ft.Margin(right=5),
         style=ft.ButtonStyle(
-            shape=RoundedRectangleBorder(radius=10),
-            color=Colors.SURFACE_CONTAINER_LOW,
-            bgcolor=Colors.PRIMARY,
-            overlay_color=Colors.ON_PRIMARY_CONTAINER
+            shape=ft.RoundedRectangleBorder(radius=10),
+            color=ft.Colors.SURFACE_CONTAINER_LOW,
+            bgcolor=ft.Colors.PRIMARY,
+            overlay_color=ft.Colors.ON_PRIMARY_CONTAINER
         )
     )
 
-    modify_text = Text(value="Modify settings",align=Alignment.CENTER,size=20,color=Colors.WHITE)
-    clear_text = Text(value="Clear",size=20,color=Colors.RED_400)
-    type_icon = Icon(icon=Icons.WIFI_ROUNDED,size=35)
+    modify_text = ft.Text(value="Modify settings",align=ft.Alignment.CENTER,size=20,color=ft.Colors.WHITE)
+    clear_text = ft.Text(value="Clear",size=20,color=ft.Colors.RED_400)
+    type_icon = ft.Icon(icon=ft.Icons.WIFI_ROUNDED,size=35)
 
-    error_correction_content = Text(value="",size=20,color=Colors.PRIMARY)
-    error_correction_container=Column(controls=[
-        Text(value="Correction",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-        Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER , content=error_correction_content),
+    error_correction_content = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
+    error_correction_container=ft.Column(controls=[
+        ft.Text(value="Correction",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+        ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER , content=error_correction_content),
     ])
 
-    text_content = Text(value="",size=20,color=Colors.PRIMARY)
-    text_label = Text(value="",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE))
+    text_content = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
+    text_label = ft.Text(value="",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE))
 
-    wifi_protocol = Text(value="",size=20)
-    wifi_pass = Text(value="",size=20)
-    wifi_pass_display = Column(controls=[
-        Text(value="Password",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-        Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=wifi_pass),
+    wifi_protocol = ft.Text(value="",size=20)
+    wifi_pass = ft.Text(value="",size=20)
+    wifi_pass_display = ft.Column(controls=[
+        ft.Text(value="Password",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+        ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=wifi_pass),
     ])
 
-    wifi_subcontainer = Row(visible=False,controls=[       
-        Column(controls=[
-            Text(value="Security",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-                Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=Row(controls=[
-                    Icon(icon=Icons.SHIELD_ROUNDED),
+    wifi_subcontainer = ft.Row(visible=False,controls=[       
+        ft.Column(controls=[
+            ft.Text(value="Security",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+                ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=ft.Row(controls=[
+                    ft.Icon(icon=ft.Icons.SHIELD_ROUNDED),
                     wifi_protocol      
                 ])),
         ]),
@@ -1425,78 +1421,78 @@ def main(page: Page):
     ])      
 
     def get_content_container(label,content):
-        content_container=Column(controls=[
+        content_container=ft.Column(controls=[
             label,
-            Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=content),
+            ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=content),
         ])
         return content_container
 
-    preview_qr_on_summary = Container()
+    preview_qr_on_summary = ft.Container()
 
-    filename_textfield = TextField(
+    filename_textfield = ft.TextField(
         expand=False,
         label="Enter filename",
         hint_text="QR name here",
         border_width=0,
     )
 
-    email_subject_summary =Text(value="",align=Alignment.CENTER,size=20,color=Colors.WHITE)
-    email_body_summary =Text(value="",align=Alignment.CENTER,size=20,color=Colors.WHITE)
+    email_subject_summary =ft.Text(value="",align=ft.Alignment.CENTER,size=20,color=ft.Colors.WHITE)
+    email_body_summary =ft.Text(value="",align=ft.Alignment.CENTER,size=20,color=ft.Colors.WHITE)
 
-    email_advanced_container = Column(tight=True,controls=[
+    email_advanced_container = ft.Column(tight=True,controls=[
         #get_content_container("subject",Text(value=email_subject.value,size=20,color=Colors.PRIMARY)),
-        Column(controls=[
-            Text(value="Subject",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-            Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_subject_summary),
+        ft.Column(controls=[
+            ft.Text(value="Subject",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+            ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=email_subject_summary),
         ]),
-        Column(controls=[
-            Text(value="Body",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-            Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_body_summary),
+        ft.Column(controls=[
+            ft.Text(value="Body",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+            ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=email_body_summary),
         ])
     ])
 
-    longitude=Text(value="",size=20,color=Colors.PRIMARY)
+    longitude=ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
 
-    longitude_container = Column(controls=[
-        Text(value="Longitude",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-        Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=longitude),
+    longitude_container = ft.Column(controls=[
+        ft.Text(value="Longitude",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+        ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=longitude),
     ])
 
-    sms_msg = Text(value="",size=20,color=Colors.PRIMARY)
+    sms_msg = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
 
-    sms_container = Column(visible=False,controls=[
-        Text(value="Message",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-        Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=sms_msg),
+    sms_container = ft.Column(visible=False,controls=[
+        ft.Text(value="Message",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+        ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=sms_msg),
     ])
 
-    event_title_summary = Text(value="",size=20,color=Colors.PRIMARY)
-    event_location_summary = Text(value="",size=20,color=Colors.PRIMARY)
-    event_start_summary = Text(value="",size=20,color=Colors.PRIMARY)
-    event_end_summary = Text(value="",size=20,color=Colors.PRIMARY)
+    event_title_summary = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
+    event_location_summary = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
+    event_start_summary = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
+    event_end_summary = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
     
-    event_summary_container = Column(visible=False, controls=[
-        Column(controls=[
-            Text(value="Location",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-            Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location_summary),
+    event_summary_container = ft.Column(visible=False, controls=[
+        ft.Column(controls=[
+            ft.Text(value="Location",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+            ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=event_location_summary),
         ]),
-        Column(controls=[
-            Text(value="Start",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-            Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_start_summary),
+        ft.Column(controls=[
+            ft.Text(value="Start",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+            ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=event_start_summary),
         ]),
-        Column(controls=[
-            Text(value="End",size=15,margin=Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
-            Container(border_radius=10,padding=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_end_summary),
+        ft.Column(controls=[
+            ft.Text(value="End",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
+            ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=event_end_summary),
         ]),
     ])
 
-    extra_vis= Container(
-        bgcolor=Colors.SECONDARY_CONTAINER,
+    extra_vis= ft.Container(
+        bgcolor=ft.Colors.SECONDARY_CONTAINER,
         border_radius=20,
         padding=10,
         visible=False,
         expand=False,
-        align=Alignment.CENTER,
-        content=Row(tight=True,controls=[
+        align=ft.Alignment.CENTER,
+        content=ft.Row(tight=True,controls=[
             email_advanced_container,
             sms_container,
             event_summary_container,
@@ -1504,33 +1500,33 @@ def main(page: Page):
         ])
     )
 
-    summary_visual = Column(tight=True,controls=[
-        Container(padding=20,border_radius=30,align=Alignment.CENTER,bgcolor=Colors.INVERSE_PRIMARY,content=preview_qr_on_summary),
-        Container(
-            bgcolor=Colors.SURFACE_CONTAINER,
+    summary_visual = ft.Column(tight=True,controls=[
+        ft.Container(padding=20,border_radius=30,align=ft.Alignment.CENTER,bgcolor=ft.Colors.INVERSE_PRIMARY,content=preview_qr_on_summary),
+        ft.Container(
+            bgcolor=ft.Colors.SURFACE_CONTAINER,
             border_radius=20,
             padding=5,
             expand=False,
-            align=Alignment.CENTER,
-            content=Row(tight=True,controls=[
+            align=ft.Alignment.CENTER,
+            content=ft.Row(tight=True,controls=[
                 filename_textfield,
-                Container(height=30,width=2,bgcolor="grey",margin=Margin(left=5,right=5),content=Text("")), 
+                ft.Container(height=30,width=2,bgcolor="grey",margin=ft.Margin(left=5,right=5),content=ft.Text("")), 
                 download_button,
             ])
         ),
-        Row(alignment=ft.MainAxisAlignment.CENTER,margin=Margin(top=40),controls=[
-            Container(on_hover=lambda e: handle_modify_hover(e, modify_text,Colors.WHITE,Colors.WHITE),on_click=lambda e:qr_creator_open(),content=modify_text),
-            Container(height=20,width=2,bgcolor="grey",margin=Margin(left=5,right=5),content=Text("")),
-            Container(on_hover=lambda e: handle_modify_hover(e, clear_text,Colors.RED_200,Colors.RED_400),on_click=lambda e:clear_summary(),content=clear_text),
+        ft.Row(alignment=ft.MainAxisAlignment.CENTER,margin=ft.Margin(top=40),controls=[
+            ft.Container(on_hover=lambda e: handle_modify_hover(e, modify_text,ft.Colors.WHITE,ft.Colors.WHITE),on_click=lambda e:qr_creator_open(),content=modify_text),
+            ft.Container(height=20,width=2,bgcolor="grey",margin=ft.Margin(left=5,right=5),content=ft.Text("")),
+            ft.Container(on_hover=lambda e: handle_modify_hover(e, clear_text,ft.Colors.RED_200,ft.Colors.RED_400),on_click=lambda e:clear_summary(),content=clear_text),
         ]),
-        Container(
-            bgcolor=Colors.SECONDARY_CONTAINER,
+        ft.Container(
+            bgcolor=ft.Colors.SECONDARY_CONTAINER,
             border_radius=30,
             padding=10,
             expand=False,
-            align=Alignment.CENTER,
-            content=Row(tight=True,controls=[
-                Container(padding=15,border_radius=20,border=Border.all(width=4,color=Colors.PRIMARY),bgcolor=Colors.PRIMARY_CONTAINER,content=type_icon),
+            align=ft.Alignment.CENTER,
+            content=ft.Row(tight=True,controls=[
+                ft.Container(padding=15,border_radius=20,border=ft.Border.all(width=4,color=ft.Colors.PRIMARY),bgcolor=ft.Colors.PRIMARY_CONTAINER,content=type_icon),
                 get_content_container(text_label,text_content),
                 wifi_subcontainer,
                 longitude_container,
@@ -1540,7 +1536,7 @@ def main(page: Page):
         extra_vis,
     ])
 
-    def handle_modify_hover(e,element,color=Colors.WHITE,default_color=Colors.PRIMARY):
+    def handle_modify_hover(e,element,color=ft.Colors.WHITE,default_color=ft.Colors.PRIMARY):
         if e.data == True:
             element.color = color
             element.style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE,decoration_color=color)
@@ -1549,44 +1545,45 @@ def main(page: Page):
             element.style = None
 
 
-    bmac_button_top_bar = Button(
-        icon=Icons.COFFEE_ROUNDED,
+    bmac_button_top_bar = ft.Button(
+        icon=ft.Icons.COFFEE_ROUNDED,
         content="Buy me a coffee",
         visible=True,
         color="yellow",
-        #bgcolor=Colors.YELLOW_900,
+        #bgcolor=ft.Colors.YELLOW_900,
         icon_color="yellow",
         #on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR","BLANK"))
     )
 
-    top_bar = Row(controls=[
-        Row(controls=[
-            Text(value="QuickeR",size=24,weight=ft.FontWeight.BOLD,margin=Margin(left=10)),
+    top_bar = ft.Row(controls=[
+        ft.Row(controls=[
+            ft.Text(value="QuickeR",size=24,font_family="MaterialRoundedBold",margin=ft.Margin(left=10)),
         ]),
-        Container(
+        ft.Container(
             border_radius=10,
-            bgcolor=Colors.TERTIARY_CONTAINER,
-            content=Text(
+            bgcolor=ft.Colors.TERTIARY_CONTAINER,
+            content=ft.Text(
                 value="Web",
                 size=11,
-                color=Colors.WHITE,
+                font_family="MaterialRoundedBold",
+                color=ft.Colors.WHITE,
                 style=ft.TextStyle(weight=ft.FontWeight.BOLD)
             ),
-            border=Border.all(width=3,color=Colors.TERTIARY),
+            border=ft.Border.all(width=3,color=ft.Colors.TERTIARY),
             padding=7
         ),
-        Container(expand=True),
-        Row(
+        ft.Container(expand=True),
+        ft.Row(
             alignment=ft.MainAxisAlignment.END,
             controls=[
                 #appearance_setting,
                 bmac_button_top_bar,
-                IconButton(
+                ft.IconButton(
                     icon=get_github_icon_by_mode(),
                     on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK"))
                 ),
-                Button(
-                    icon=Icons.INFO_OUTLINE_ROUNDED,
+                ft.Button(
+                    icon=ft.Icons.INFO_OUTLINE_ROUNDED,
                     content="About",
                     on_click=lambda e: open_about_bs()
                 ),
@@ -1594,7 +1591,7 @@ def main(page: Page):
         )
     ])
 
-    overview = Column(
+    overview = ft.Column(
         alignment=ft.MainAxisAlignment.CENTER,
         expand=True,
         controls=[create_button],
@@ -1605,9 +1602,9 @@ def main(page: Page):
         await ft.UrlLauncher().launch_url(ft.Url(url=url, target=target))
 
     safearea = ft.SafeArea(
-        content=Column(
+        content=ft.Column(
             expand=True,
-            controls=[top_bar,overview,Container(height=150)]
+            controls=[top_bar,overview,ft.Container(height=150)]
         ),
         expand=True
     )
