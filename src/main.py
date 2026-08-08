@@ -89,7 +89,7 @@ def contrast_ratio(hex1, hex2):
     lighter, darker = max(l1, l2), min(l1, l2)
     return (lighter + 0.05) / (darker + 0.05)
 
-#Lazy loading 
+#Lazy loading helper class
 
 class LogoPicker:
     def __init__(self, page):
@@ -104,6 +104,26 @@ class LogoPicker:
             with_data=True
         )
         return files[0] if files else None
+
+
+class CreateBsHandle:
+    """Wraps every local control built inside build_create_bs() as attributes,
+    exposing .create_bs (the actual BottomSheet control) and a mirrored
+    .open property so create_bs_ref["instance"].open = True/False works
+    exactly like it did when create_layout was a module-level BottomSheet."""
+    def __init__(self, create_layout, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.create_bs = create_layout
+
+    @property
+    def open(self):
+        return self.create_bs.open
+
+    @open.setter
+    def open(self, value):
+        self.create_bs.open = value
+
         
 def main(page: Page):
     ###PAGE SETTINGS--------------------------------------------------------------
@@ -115,6 +135,7 @@ def main(page: Page):
     logo_image_path = {"path": None}
     logo_picker_ref = {"instance": None}
     about_bs_ref = {"instance": None}
+    create_bs_ref = {"instance": None}
     
     ##THEMING--------------------------------------------------------------
     page.fonts = {
@@ -167,7 +188,8 @@ def main(page: Page):
 
     #Generates a QR code based on the input and displays it in the preview and summary area
     def display_preview_qr(url, qr_color_primary, qr_color_secondary, error_correct):
-        preview_qr_area.controls.clear()
+        if create_bs_ref["instance"] is not None:
+            create_bs_ref["instance"].preview_qr_area.controls.clear()
 
         if logo_image_path["path"]:
             error_correct = qrcode.constants.ERROR_CORRECT_H
@@ -195,7 +217,8 @@ def main(page: Page):
         uri_base64 = f"data:image/png;base64,{base64_puro}"
         preview_qr = Image(src=uri_base64, width=200, height=200, border_radius=10)
         preview_qr_on_summary.content = preview_qr
-        preview_qr_area.controls.append(preview_qr)
+        if create_bs_ref["instance"] is not None:
+            create_bs_ref["instance"].preview_qr_area.controls.append(preview_qr)
         page.update()
     file_saver = FilePicker()
     page.services.append(file_saver)
@@ -234,14 +257,16 @@ def main(page: Page):
             src_bytes=buf.getvalue(),
         )
     
-    #Opens the QR creation bottom sheet
+    #Opens the QR creation bottom sheet (lazy: builds it only the first time)
     def qr_creator_open():
         async def _open():
-            if create_layout not in page.overlay:
-                page.overlay.append(create_layout)
+            if create_bs_ref["instance"] is None:
+                create_bs_ref["instance"] = build_create_bs()
+                page.overlay.append(create_bs_ref["instance"].create_bs)
                 page.update()
                 await asyncio.sleep(0.05)
-            create_layout.open = True
+                display_preview_qr("", "black", "white", ERROR_CORRECTION_MAP["M (15%)"])
+            create_bs_ref["instance"].open = True
             page.update()
         page.run_task(_open)
     
@@ -255,35 +280,36 @@ def main(page: Page):
                 actions_alignment="end",
             ))
 
-        if qr_type_dropdown.value == "WIFI":
-            if not wifi_name.value:
+        cb = create_bs_ref["instance"]
+        if cb.qr_type_dropdown.value == "WIFI":
+            if not cb.wifi_name.value:
                 alert_empty()
                 return False
-            if wifi_protocol_dropdown.value != "No password" and not wifi_password.value:
+            if cb.wifi_protocol_dropdown.value != "No password" and not cb.wifi_password.value:
                 alert_empty()
                 return False
-        elif qr_type_dropdown.value == "Email":
-            if not email_address.value:
+        elif cb.qr_type_dropdown.value == "Email":
+            if not cb.email_address.value:
                 alert_empty()
                 return False
-        elif qr_type_dropdown.value == "Phone":
-            if not phone_number.value or not phone_prefix.value:
+        elif cb.qr_type_dropdown.value == "Phone":
+            if not cb.phone_number.value or not cb.phone_prefix.value:
                 alert_empty()
                 return False
-        elif qr_type_dropdown.value == "SMS":
-            if not sms_number.value or not sms_prefix.value or not sms_message.value:
+        elif cb.qr_type_dropdown.value == "SMS":
+            if not cb.sms_number.value or not cb.sms_prefix.value or not cb.sms_message.value:
                 alert_empty()
                 return False
-        elif qr_type_dropdown.value == "Location":
-            if not location_lat.value or not location_lng.value:
+        elif cb.qr_type_dropdown.value == "Location":
+            if not cb.location_lat.value or not cb.location_lng.value:
                 alert_empty()
                 return False
-        elif qr_type_dropdown.value == "Event":
-            if not event_title.value or not event_location.value or not date_picker.start_value or not date_picker.end_value or not start_time_picker.value or not end_time_picker.value:
+        elif cb.qr_type_dropdown.value == "Event":
+            if not cb.event_title.value or not cb.event_location.value or not cb.date_picker.start_value or not cb.date_picker.end_value or not cb.start_time_picker.value or not cb.end_time_picker.value:
                 alert_empty()
                 return False
         else:  
-            if not qr_url_input_field.value:
+            if not cb.qr_url_input_field.value:
                 alert_empty()
                 return False
         return True
@@ -300,6 +326,7 @@ def main(page: Page):
 
     #Transitions to summary view
     def qr_create_triggered():
+        cb = create_bs_ref["instance"]
         def perform_transition():
             type_icon.icon = get_logo()
             get_content()
@@ -308,7 +335,8 @@ def main(page: Page):
                 overview.controls.append(summary_visual)
             clean_create_bs_up()
         if input_checker():
-            if check_qr_contrast(qr_color_scheme_primary.color, qr_color_scheme_secondary.color) == 1:
+            contrast_result = check_qr_contrast(cb.qr_color_scheme_primary.color, cb.qr_color_scheme_secondary.color)
+            if contrast_result == 1:
                 page.show_dialog(AlertDialog(
                     title=Text("Low contrast"),
                     content=Text("The selected colors have low contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
@@ -318,7 +346,7 @@ def main(page: Page):
                     ],
                     actions_alignment="end",
                 ))
-            elif check_qr_contrast(qr_color_scheme_primary.color, qr_color_scheme_secondary.color) == 2:
+            elif contrast_result == 2:
                 page.show_dialog(AlertDialog(
                     title=Text("Moderate contrast"),
                     content=Text("The selected colors have moderate contrast. This may result in a QR code that is difficult to scan. Do you want to continue?"),
@@ -349,21 +377,22 @@ def main(page: Page):
 
     #Returns the appropriate icon for the selected QR type
     def get_logo():
-        if qr_type_dropdown.value == "WIFI":
+        cb = create_bs_ref["instance"]
+        if cb.qr_type_dropdown.value == "WIFI":
             return Icons.WIFI_ROUNDED
-        elif qr_type_dropdown.value == "URL/Link":
+        elif cb.qr_type_dropdown.value == "URL/Link":
             return Icons.LINK_ROUNDED
-        elif qr_type_dropdown.value == "Email":
+        elif cb.qr_type_dropdown.value == "Email":
             return Icons.MAIL_ROUNDED
-        elif qr_type_dropdown.value == "Phone":
+        elif cb.qr_type_dropdown.value == "Phone":
             return Icons.CALL_ROUNDED
-        elif qr_type_dropdown.value == "SMS":
+        elif cb.qr_type_dropdown.value == "SMS":
             return Icons.MESSAGE_ROUNDED
-        elif qr_type_dropdown.value == "Location":
+        elif cb.qr_type_dropdown.value == "Location":
             return Icons.PIN_ROUNDED
-        elif qr_type_dropdown.value == "Event":
+        elif cb.qr_type_dropdown.value == "Event":
             return Icons.PARTY_MODE_ROUNDED
-        elif qr_type_dropdown.value == "Text":
+        elif cb.qr_type_dropdown.value == "Text":
             return Icons.TEXT_FORMAT_ROUNDED   
 
     #Clears the summary view and goes back to the home view, resetting all input fields
@@ -386,19 +415,20 @@ def main(page: Page):
 
     #Clears the QR creation bottom sheet and resets all input fields
     def clean_create_bs_up(full_reset=False):
-        if create_layout.open == True:
-            create_layout.open = False
-        if full_reset:
+        cb = create_bs_ref["instance"]
+        if cb and cb.open == True:
+            cb.open = False
+        if full_reset and cb:
             for item in [
-                wifi_name, wifi_password, qr_url_input_field, email_address, 
-                email_subject, email_body, phone_prefix, phone_number, sms_prefix, 
-                sms_number, sms_message, location_lat, location_lng, event_title, 
-                event_location, start_time_picker, end_time_picker
+                cb.wifi_name, cb.wifi_password, cb.qr_url_input_field, cb.email_address, 
+                cb.email_subject, cb.email_body, cb.phone_prefix, cb.phone_number, cb.sms_prefix, 
+                cb.sms_number, cb.sms_message, cb.location_lat, cb.location_lng, cb.event_title, 
+                cb.event_location, cb.start_time_picker, cb.end_time_picker
                 ]:
                 item.value = ""
         page.update()
 
-    #Opens the about bottom sheet
+    #Opens the about bottom sheet (lazy: builds it only the first time)
     def open_about_bs():
         async def _open_about():
             if about_bs_ref["instance"] is None:
@@ -436,7 +466,7 @@ def main(page: Page):
     ##MAIN LAYOUT --------------------------------------------------------------
 
 
-    ##ABOUT BOTTOM SHEET --------------------------------------------------------------
+    ##ABOUT BOTTOM SHEET (lazy-built) --------------------------------------------------------------
     def build_about_bs():
         about_bs = BottomSheet(
             draggable=True,
@@ -728,404 +758,414 @@ def main(page: Page):
             )
         return about_bs   
         
-    ##CREATE BOTTOM SHEET --------------------------------------------------------------
-    qr_type_dropdown = Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
-        DropdownOption(text="URL/Link",leading_icon=Icons.LINK_ROUNDED),
-        DropdownOption(text="Text",leading_icon=Icons.TEXT_FIELDS_ROUNDED),
-        DropdownOption(text="WIFI",leading_icon=Icons.WIFI_ROUNDED),
-        DropdownOption(text="Email",leading_icon=Icons.MAIL_OUTLINE_ROUNDED),
-        DropdownOption(text="Phone",leading_icon=Icons.PHONE_ANDROID_ROUNDED),
-        DropdownOption(text="Location",leading_icon=Icons.PIN_DROP_ROUNDED),
-        DropdownOption(text="SMS",leading_icon=Icons.MESSAGE_ROUNDED),
-        DropdownOption(text="Event",leading_icon=Icons.STAR_BORDER_ROUNDED),
-    ])
-
-    #URL
-    url_protocol_dropdown = Dropdown(value="https://",border_width=0,options=[
-        DropdownOption(text="https://"),
-        DropdownOption(text="http://"),
+    ##CREATE BOTTOM SHEET (lazy-built) --------------------------------------------------------------
+    def build_create_bs():
+        qr_type_dropdown = Dropdown(on_select=lambda e: type_trigger(e),border_width=0,value="URL/Link",options=[
+            DropdownOption(text="URL/Link",leading_icon=Icons.LINK_ROUNDED),
+            DropdownOption(text="Text",leading_icon=Icons.TEXT_FIELDS_ROUNDED),
+            DropdownOption(text="WIFI",leading_icon=Icons.WIFI_ROUNDED),
+            DropdownOption(text="Email",leading_icon=Icons.MAIL_OUTLINE_ROUNDED),
+            DropdownOption(text="Phone",leading_icon=Icons.PHONE_ANDROID_ROUNDED),
+            DropdownOption(text="Location",leading_icon=Icons.PIN_DROP_ROUNDED),
+            DropdownOption(text="SMS",leading_icon=Icons.MESSAGE_ROUNDED),
+            DropdownOption(text="Event",leading_icon=Icons.STAR_BORDER_ROUNDED),
         ])
 
-    #WIFI
-    wifi_name= TextField(
-        expand=True,
-        border_width=0,
-        label="Enter network name",
-        on_change=lambda e: prop_changed()
-    )
+        #URL
+        url_protocol_dropdown = Dropdown(value="https://",border_width=0,options=[
+            DropdownOption(text="https://"),
+            DropdownOption(text="http://"),
+            ])
 
-    wifi_protocol_dropdown = Dropdown(value="WPA2",border_width=0,on_select=lambda e: wifi_protocol_changed(e),options=[
-        DropdownOption(text="WPA2"),
-        DropdownOption(text="WPA"),
-        DropdownOption(text="WEP"),
-        DropdownOption(text="No password"),
-    ])
-
-    def wifi_protocol_changed(e):
-        selected = e.control.value 
-        if selected == "No password":
-            wifi_password_setting.visible = False
-        else:
-            wifi_password_setting.visible = True
-        prop_changed()
-    
-    wifi_password= TextField(
-        expand=True,
-        border_width=0,
-        label="Enter network password",
-        on_change=lambda e: prop_changed()
-    )
-
-    wifi_password_setting= Column(visible=True,controls=[
-        Divider(color="grey"),
-        Row(alignment=MainAxisAlignment.START,controls=[
-            Icon(icon=Icons.PASSWORD_ROUNDED),
-            Text(value=("WIFI password"), size=20),
-        ]),
-        Container(border_radius=10,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_password),
-    ])
-
-    wifi_area = Column(visible=False,controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[
-            Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
-            Text(value=("Network name"), size=20),
-        ]),
-        Container(border_radius=10,
-            bgcolor=Colors.SURFACE_CONTAINER,
-            content=wifi_name
-        ),
-        Divider(color="grey"),
-        Container(
-            content=Row(controls=[
-                Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
-                Container(expand=True,content=Text(
-                    value="If your network has no password, select it here!",
-                    size=16,
-                    color=Colors.WHITE
-                )),
-                ],
-            ),
-            padding=15,
-            bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
-            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
-        ),
-        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-            Row(controls=[
-            Icon(icon=Icons.SHIELD),
-            Text(value=("WIFI security protocol"), size=20),
-            ]),
-            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_protocol_dropdown)
-        ]),
-        wifi_password_setting
-    ])
-
-    # Email
-    email_address = TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
-    email_adv_checkbox = Switch(value=False, on_change=lambda e: email_checkbox_changed())
-    email_general_content=Column(visible=False,controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[
-            Icon(icon=Icons.MAIL_ROUNDED),
-            Text(value=("Address"), size=20),
-        ]),
-        Container(border_radius=10,
-            bgcolor=Colors.SURFACE_CONTAINER,
-            content=email_address
-        ),
-        Divider(color="grey"),
-        Row(alignment=MainAxisAlignment.START,controls=[
-            Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
-            Text(value=("Advanced options"), size=20),
-            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=email_adv_checkbox)
-        ]),
-    ])
-
-    # -> On checkbox changed
-    def email_checkbox_changed():
-        if email_adv_checkbox.value:
-            email_adv_content.visible = True
-        else:
-            email_adv_content.visible = False
-        prop_changed()
-
-    email_subject = TextField(expand=True, border_width=0, label="Subject", on_change=lambda e: prop_changed())
-    email_body = TextField(expand=True, border_width=0, label="Body", multiline=True, on_change=lambda e: prop_changed())
-    email_adv_content = Column(visible=False, controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SUBJECT_ROUNDED), Text(value="Subject", size=20)]),
-        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_subject),
-        Divider(color="grey"),
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.TEXT_FIELDS_ROUNDED), Text(value="Body", size=20)]),
-        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_body),
-    ])
-
-    # Phone
-    phone_prefix = TextField(
-        border_width=0,
-        label="",
-        hint_text="",
-        width=80,
-        max_length=4,
-        counter=Container(),
-        keyboard_type=ft.KeyboardType.NUMBER,
-        on_change=lambda e: prop_changed()
-    )
-    phone_number = TextField(
-        expand=True,
-        border_width=0,
-        label="Enter address",
-        hint_text="",
-        keyboard_type=ft.KeyboardType.NUMBER,
-        on_change=lambda e: prop_changed()
-    )   
-    phone_general_content=Column(visible=False,controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[
-            Icon(icon=Icons.CALL_ROUNDED),
-            Text(value=("Phone number"), size=20),
-        ]),
-        Row(
+        #WIFI
+        wifi_name= TextField(
             expand=True,
-            controls=[
-            Container(
-                border_radius=10,
+            border_width=0,
+            label="Enter network name",
+            on_change=lambda e: prop_changed()
+        )
+
+        wifi_protocol_dropdown = Dropdown(value="WPA2",border_width=0,on_select=lambda e: wifi_protocol_changed(e),options=[
+            DropdownOption(text="WPA2"),
+            DropdownOption(text="WPA"),
+            DropdownOption(text="WEP"),
+            DropdownOption(text="No password"),
+        ])
+
+        def wifi_protocol_changed(e):
+            selected = e.control.value 
+            if selected == "No password":
+                wifi_password_setting.visible = False
+            else:
+                wifi_password_setting.visible = True
+            prop_changed()
+
+        wifi_password= TextField(
+            expand=True,
+            border_width=0,
+            label="Enter network password",
+            on_change=lambda e: prop_changed()
+        )
+
+        wifi_password_setting= Column(visible=True,controls=[
+            Divider(color="grey"),
+            Row(alignment=MainAxisAlignment.START,controls=[
+                Icon(icon=Icons.PASSWORD_ROUNDED),
+                Text(value=("WIFI password"), size=20),
+            ]),
+            Container(border_radius=10,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_password),
+        ])
+
+        wifi_area = Column(visible=False,controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[
+                Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
+                Text(value=("Network name"), size=20),
+            ]),
+            Container(border_radius=10,
                 bgcolor=Colors.SURFACE_CONTAINER,
+                content=wifi_name
+            ),
+            Divider(color="grey"),
+            Container(
                 content=Row(controls=[
-                    Text("+",margin=Margin(left=15),size=15),
-                    phone_prefix
-                ])
+                    Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
+                    Container(expand=True,content=Text(
+                        value="If your network has no password, select it here!",
+                        size=16,
+                        color=Colors.WHITE
+                    )),
+                    ],
+                ),
+                padding=15,
+                bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
+                margin=Margin.only(left=0, right=0, top=5, bottom=5,)
             ),
-            Container(
+            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                Row(controls=[
+                Icon(icon=Icons.SHIELD),
+                Text(value=("WIFI security protocol"), size=20),
+                ]),
+                Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=wifi_protocol_dropdown)
+            ]),
+            wifi_password_setting
+        ])
+
+        # Email
+        email_address = TextField(expand=True,border_width=0,label="Enter address",hint_text="Enter address",on_change=lambda e: prop_changed())
+        email_adv_checkbox = Switch(value=False, on_change=lambda e: email_checkbox_changed())
+        email_general_content=Column(visible=False,controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[
+                Icon(icon=Icons.MAIL_ROUNDED),
+                Text(value=("Address"), size=20),
+            ]),
+            Container(border_radius=10,
+                bgcolor=Colors.SURFACE_CONTAINER,
+                content=email_address
+            ),
+            Divider(color="grey"),
+            Row(alignment=MainAxisAlignment.START,controls=[
+                Icon(icon=Icons.TEXT_FIELDS_ROUNDED),
+                Text(value=("Advanced options"), size=20),
+                Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=email_adv_checkbox)
+            ]),
+        ])
+
+        # -> On checkbox changed
+        def email_checkbox_changed():
+            if email_adv_checkbox.value:
+                email_adv_content.visible = True
+            else:
+                email_adv_content.visible = False
+            prop_changed()
+
+        email_subject = TextField(expand=True, border_width=0, label="Subject", on_change=lambda e: prop_changed())
+        email_body = TextField(expand=True, border_width=0, label="Body", multiline=True, on_change=lambda e: prop_changed())
+        email_adv_content = Column(visible=False, controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SUBJECT_ROUNDED), Text(value="Subject", size=20)]),
+            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_subject),
+            Divider(color="grey"),
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.TEXT_FIELDS_ROUNDED), Text(value="Body", size=20)]),
+            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=email_body),
+        ])
+
+        # Phone
+        phone_prefix = TextField(
+            border_width=0,
+            label="",
+            hint_text="",
+            width=80,
+            max_length=4,
+            counter=Container(),
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=lambda e: prop_changed()
+        )
+        phone_number = TextField(
+            expand=True,
+            border_width=0,
+            label="Enter address",
+            hint_text="",
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=lambda e: prop_changed()
+        )   
+        phone_general_content=Column(visible=False,controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[
+                Icon(icon=Icons.CALL_ROUNDED),
+                Text(value=("Phone number"), size=20),
+            ]),
+            Row(
                 expand=True,
-                border_radius=10,
-                bgcolor=Colors.SURFACE_CONTAINER,
-                content=phone_number
-            ),
+                controls=[
+                Container(
+                    border_radius=10,
+                    bgcolor=Colors.SURFACE_CONTAINER,
+                    content=Row(controls=[
+                        Text("+",margin=Margin(left=15),size=15),
+                        phone_prefix
+                    ])
+                ),
+                Container(
+                    expand=True,
+                    border_radius=10,
+                    bgcolor=Colors.SURFACE_CONTAINER,
+                    content=phone_number
+                ),
+            ])
+        ]) 
+
+        # SMS
+        sms_prefix = TextField(
+            border_width=0,
+            label="",
+            hint_text="",
+            width=80,
+            max_length=4,
+            counter=Container(),
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=lambda e: prop_changed()
+        )
+        sms_number = TextField(
+            expand=True,
+            border_width=0,
+            label="Enter phone number",
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=lambda e: prop_changed()
+        )
+        sms_message = TextField(expand=True, border_width=0, label="Enter message", multiline=True, on_change=lambda e: prop_changed())
+
+        sms_general_content = Column(visible=False, controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SMS_ROUNDED), Text(value="Phone number", size=20)]),
+            Row(controls=[
+                Container(
+                    border_radius=10,
+                    bgcolor=Colors.SURFACE_CONTAINER,
+                    content=Row(controls=[Text("+", margin=Margin(left=15), size=15), sms_prefix])
+                ),
+                Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=sms_number),
+            ]),
+            Divider(color="grey"),
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.MESSAGE_ROUNDED), Text(value="Message", size=20)]),
+            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=sms_message),
         ])
-    ]) 
 
-    # SMS
-    sms_prefix = TextField(
-        border_width=0,
-        label="",
-        hint_text="",
-        width=80,
-        max_length=4,
-        counter=Container(),
-        keyboard_type=ft.KeyboardType.NUMBER,
-        on_change=lambda e: prop_changed()
-    )
-    sms_number = TextField(
-        expand=True,
-        border_width=0,
-        label="Enter phone number",
-        keyboard_type=ft.KeyboardType.NUMBER,
-        on_change=lambda e: prop_changed()
-    )
-    sms_message = TextField(expand=True, border_width=0, label="Enter message", multiline=True, on_change=lambda e: prop_changed())
+        # Location
+        location_lat = TextField(expand=True, border_width=0, label="Latitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
+        location_lng = TextField(expand=True, border_width=0, label="Longitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
 
-    sms_general_content = Column(visible=False, controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.SMS_ROUNDED), Text(value="Phone number", size=20)]),
-        Row(controls=[
+        location_general_content = Column(visible=False, controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Coordinates", size=20)]),
+            Row(controls=[
+                Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lat),
+                Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lng),
+            ]),
+        ])
+
+        # Event (vCalendar/iCal)
+        event_title = TextField(expand=True, border_width=0, label="Event title", on_change=lambda e: prop_changed())
+        event_location = TextField(expand=True, border_width=0, label="Location", on_change=lambda e: prop_changed())
+
+        date_picker = DateRangePicker(open=False, on_change=lambda e: prop_changed())
+        start_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
+        end_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
+
+        page.overlay.append(date_picker)
+        page.overlay.append(start_time_picker)
+        page.overlay.append(end_time_picker)
+
+        def open_date_picker(e):
+            date_picker.open = True
+            page.update()
+
+        def open_start_time(e):
+            start_time_picker.open = True
+            page.update()
+
+        def open_end_time(e):
+            end_time_picker.open = True
+            page.update()
+
+        date_picker_button = Button(content="Date period",icon=Icons.CALENDAR_MONTH_ROUNDED, on_click=lambda e: open_date_picker(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick date range")
+        start_time_picker_button = Button(content="Start time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_start_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick start time")
+        end_time_picker_button = Button(content="End time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
+
+        event_general_content = Column(visible=False, controls=[
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20)]),
+            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_title),
+            Divider(color="grey"),
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20)]),
+            Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location),
+            Divider(color="grey"),
+            Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20)]),
             Container(
-                border_radius=10,
-                bgcolor=Colors.SURFACE_CONTAINER,
-                content=Row(controls=[Text("+", margin=Margin(left=15), size=15), sms_prefix])
+                content=Row(controls=[
+                    Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
+                    Container(expand=True,content=Text(
+                        value="Please change all fields below here!",
+                        size=16,
+                        color=Colors.WHITE
+                    )),
+                    ],
+                ),
+                padding=15,
+                bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
+                margin=Margin.only(left=0, right=0, top=5, bottom=5,)
             ),
-            Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=sms_number),
-        ]),
-        Divider(color="grey"),
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.MESSAGE_ROUNDED), Text(value="Message", size=20)]),
-        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=sms_message),
-    ])
-
-    # Location
-    location_lat = TextField(expand=True, border_width=0, label="Latitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
-    location_lng = TextField(expand=True, border_width=0, label="Longitude", keyboard_type=ft.KeyboardType.NUMBER, on_change=lambda e: prop_changed())
-
-    location_general_content = Column(visible=False, controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Coordinates", size=20)]),
-        Row(controls=[
-            Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lat),
-            Container(border_radius=10, expand=True, bgcolor=Colors.SURFACE_CONTAINER, content=location_lng),
-        ]),
-    ])
-
-    # Event (vCalendar/iCal)
-    event_title = TextField(expand=True, border_width=0, label="Event title", on_change=lambda e: prop_changed())
-    event_location = TextField(expand=True, border_width=0, label="Location", on_change=lambda e: prop_changed())
-
-    date_picker = DateRangePicker(open=False, on_change=lambda e: prop_changed())
-    start_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
-    end_time_picker = TimePicker(open=False, on_change=lambda e: prop_changed())
-    
-    page.overlay.append(date_picker)
-    page.overlay.append(start_time_picker)
-    page.overlay.append(end_time_picker)
-
-    def open_date_picker(e):
-        date_picker.open = True
-        page.update()
-
-    def open_start_time(e):
-        start_time_picker.open = True
-        page.update()
-
-    def open_end_time(e):
-        end_time_picker.open = True
-        page.update()
-
-    date_picker_button = Button(content="Date period",icon=Icons.CALENDAR_MONTH_ROUNDED, on_click=lambda e: open_date_picker(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick date range")
-    start_time_picker_button = Button(content="Start time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_start_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick start time")
-    end_time_picker_button = Button(content="End time",icon=Icons.ACCESS_TIME_ROUNDED, on_click=lambda e: open_end_time(e), style=ButtonStyle(shape=RoundedRectangleBorder(radius=12), bgcolor={"": Colors.SURFACE_CONTAINER}), tooltip="Pick end time")
-
-    event_general_content = Column(visible=False, controls=[
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.STAR_BORDER_ROUNDED), Text(value="Event title", size=20)]),
-        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_title),
-        Divider(color="grey"),
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.PIN_DROP_ROUNDED), Text(value="Location", size=20)]),
-        Container(border_radius=10, bgcolor=Colors.SURFACE_CONTAINER, content=event_location),
-        Divider(color="grey"),
-        Row(alignment=MainAxisAlignment.START,controls=[Icon(icon=Icons.ACCESS_TIME_ROUNDED), Text(value="Date and time", size=20)]),
-        Container(
-            content=Row(controls=[
-                Icon(icon=Icons.INFO_OUTLINE_ROUNDED,color=Colors.WHITE),
-                Container(expand=True,content=Text(
-                    value="Please change all fields below here!",
-                    size=16,
-                    color=Colors.WHITE
-                )),
-                ],
-            ),
-            padding=15,
-            bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,
-            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
-        ),
-        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-            date_picker_button,
-            start_time_picker_button,
-            end_time_picker_button,
-        ]),
-    ])
-    
-    qr_url_input_field = TextField(expand=True,border_width=0,label="Enter URL or text",on_change=lambda e: prop_changed())
-    error_correction_dropdown = Dropdown(value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
-        DropdownOption(text="L (7%)"),
-        DropdownOption(text="M (15%)"),
-        DropdownOption(text="Q (25%)"),
-        DropdownOption(text="H (30%)"),
+            Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                date_picker_button,
+                start_time_picker_button,
+                end_time_picker_button,
+            ]),
         ])
-    qr_color_scheme_primary = MaterialPicker(on_color_change=lambda e:prop_changed(),color="black")
-    qr_color_scheme_secondary = MaterialPicker(on_color_change=lambda e:prop_changed(),color="white")
 
-    preview_qr_area= Row(controls=[], alignment=ft.MainAxisAlignment.CENTER,expand=False, tight=True)
+        qr_url_input_field = TextField(expand=True,border_width=0,label="Enter URL or text",on_change=lambda e: prop_changed())
+        error_correction_dropdown = Dropdown(value="M (15%)",border_width=0,on_select=lambda e: prop_changed(),options=[
+            DropdownOption(text="L (7%)"),
+            DropdownOption(text="M (15%)"),
+            DropdownOption(text="Q (25%)"),
+            DropdownOption(text="H (30%)"),
+            ])
+        qr_color_scheme_primary = MaterialPicker(on_color_change=lambda e:prop_changed(),color="black")
+        qr_color_scheme_secondary = MaterialPicker(on_color_change=lambda e:prop_changed(),color="white")
 
-    input_row = Column(controls=[
-        Row(controls=[
-            Icon(icon=Icons.SHORT_TEXT_ROUNDED),
-            Text(value=("Content"), size=20)
-        ]),
-        Row(visible=True,controls=[
-            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),
-            Container(border_radius=10,expand=True,bgcolor=Colors.SURFACE_CONTAINER,content=qr_url_input_field),
-        ]),
-    ])
+        preview_qr_area= Row(controls=[], alignment=ft.MainAxisAlignment.CENTER,expand=False, tight=True)
 
-    create_layout= BottomSheet(draggable=False,use_safe_area=True,scrollable=False,fullscreen=True,open=False,on_dismiss=lambda e: clean_create_bs_up(),content=
-        Column(horizontal_alignment="center",scroll=ScrollMode.AUTO,controls=[
-            Container(bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,expand=False,content=preview_qr_area,padding=20,),
-            Container(bgcolor=Colors.SECONDARY_CONTAINER,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                Row(alignment="center",controls=[
-                    IconButton(
-                        icon=Icons.CLOSE,
-                        expand=True, 
-                        on_click=lambda e: clean_create_bs_up(),    
-                        style=ButtonStyle(
-                            shape=RoundedRectangleBorder(radius=12),
-                            bgcolor={"": Colors.RED_500}, 
-                        )
-                    ),
-                    IconButton(
-                        icon=Icons.CHECK,
-                        expand=True,
-                        on_click=lambda e: qr_create_triggered(), 
-                        style=ButtonStyle(
-                            shape=RoundedRectangleBorder(radius=12),
-                            bgcolor={"": Colors.INVERSE_PRIMARY}, 
-                        )
-                    ),
-                ])
-            ),
-            Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                Column(controls=[
-                    Row(expand=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                        Row(tight=False,controls=[
-                            Icon(icon=Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
-                            Text(value=("QR Type"), size=20),
-                        ]),
-                        Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=qr_type_dropdown)
-                    ]),
-                    Divider(color="grey"),
-                    wifi_area,
-                    input_row,
-                    email_general_content,
-                    email_adv_content,
-                    phone_general_content,
-                    sms_general_content,
-                    location_general_content,
-                    event_general_content,
-                    Divider(color="grey"),
-                    Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                        Row(controls=[
-                            Icon(icon=Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
-                            Text(value=("Error correction level"), size=20),
-                        ]),
-                        Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=error_correction_dropdown)
-                    ]), 
-                ])
-            ),
-            Text(value="Customization", size=18,color=Colors.PRIMARY),
-            Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                Column(controls=[
-                    Row(controls=[Icon(icon=Icons.ADD_PHOTO_ALTERNATE_ROUNDED),Text(value=("Logo/Branding"), size=20)]),
-                    Container(
-                        content=Row(controls=[
-                            Icon(icon=Icons.ERROR_OUTLINE_ROUNDED,color=Colors.WHITE),
-                            Container(expand=True,content=Text(
-                                value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, it is highly recommended that H level error correction is used.",
-                                size=16,
-                                color=Colors.WHITE
-                            )),
-                            ],
+        input_row = Column(controls=[
+            Row(controls=[
+                Icon(icon=Icons.SHORT_TEXT_ROUNDED),
+                Text(value=("Content"), size=20)
+            ]),
+            Row(visible=True,controls=[
+                Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=url_protocol_dropdown),
+                Container(border_radius=10,expand=True,bgcolor=Colors.SURFACE_CONTAINER,content=qr_url_input_field),
+            ]),
+        ])
+
+        create_layout= BottomSheet(draggable=False,use_safe_area=True,scrollable=False,fullscreen=True,open=False,on_dismiss=lambda e: clean_create_bs_up(),content=
+            Column(horizontal_alignment="center",scroll=ScrollMode.AUTO,controls=[
+                Container(bgcolor=Colors.INVERSE_PRIMARY,border_radius=30,expand=False,content=preview_qr_area,padding=20,),
+                Container(bgcolor=Colors.SECONDARY_CONTAINER,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
+                    Row(alignment="center",controls=[
+                        IconButton(
+                            icon=Icons.CLOSE,
+                            expand=True, 
+                            on_click=lambda e: clean_create_bs_up(),    
+                            style=ButtonStyle(
+                                shape=RoundedRectangleBorder(radius=12),
+                                bgcolor={"": Colors.RED_500}, 
+                            )
                         ),
-                        padding=15,
-                        bgcolor=Colors.RED_500,border_radius=30,
-                        margin=Margin.only(left=0, right=0, top=5, bottom=5,)
-                    ),
-                    Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
-                        Button(content="Pick image from folder",icon=Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
-                        Button(content="Remove logo",icon=Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
-                    ]),
-                    Divider(color="grey"),
-                    Text(value=("Color scheme"), size=20, color=Colors.PRIMARY),
-                    Container(
-                        content=Row(controls=[
-                            Icon(icon=Icons.WARNING_AMBER_ROUNDED,color=Colors.WHITE),
-                            Container(expand=True,content=Text(
-                                value="Due to c based tools not being supported on WASM, color checking is not available. Please be sensible with the colors you choose and ensure that the foreground color is always clearly darker.",
-                                size=16,
-                                color=Colors.WHITE
-                            )),
-                            ],
+                        IconButton(
+                            icon=Icons.CHECK,
+                            expand=True,
+                            on_click=lambda e: qr_create_triggered(), 
+                            style=ButtonStyle(
+                                shape=RoundedRectangleBorder(radius=12),
+                                bgcolor={"": Colors.INVERSE_PRIMARY}, 
+                            )
                         ),
-                        padding=15,
-                        bgcolor=Colors.ORANGE_500,border_radius=30,
-                        margin=Margin.only(left=0, right=0, top=5, bottom=5,)
-                    ),
-                    ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
-                    ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
-                ])
-            ),
-            Container(height=50)
-        ]),
-    )
+                    ])
+                ),
+                Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
+                    Column(controls=[
+                        Row(expand=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                            Row(tight=False,controls=[
+                                Icon(icon=Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
+                                Text(value=("QR Type"), size=20),
+                            ]),
+                            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=qr_type_dropdown)
+                        ]),
+                        Divider(color="grey"),
+                        wifi_area,
+                        input_row,
+                        email_general_content,
+                        email_adv_content,
+                        phone_general_content,
+                        sms_general_content,
+                        location_general_content,
+                        event_general_content,
+                        Divider(color="grey"),
+                        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                            Row(controls=[
+                                Icon(icon=Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
+                                Text(value=("Error correction level"), size=20),
+                            ]),
+                            Container(border_radius=50,bgcolor=Colors.SURFACE_CONTAINER,content=error_correction_dropdown)
+                        ]), 
+                    ])
+                ),
+                Text(value="Customization", size=18,color=Colors.PRIMARY),
+                Container(bgcolor=Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
+                    Column(controls=[
+                        Row(controls=[Icon(icon=Icons.ADD_PHOTO_ALTERNATE_ROUNDED),Text(value=("Logo/Branding"), size=20)]),
+                        Container(
+                            content=Row(controls=[
+                                Icon(icon=Icons.ERROR_OUTLINE_ROUNDED,color=Colors.WHITE),
+                                Container(expand=True,content=Text(
+                                    value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, it is highly recommended that H level error correction is used.",
+                                    size=16,
+                                    color=Colors.WHITE
+                                )),
+                                ],
+                            ),
+                            padding=15,
+                            bgcolor=Colors.RED_500,border_radius=30,
+                            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                        ),
+                        Row(wrap=True,alignment=MainAxisAlignment.SPACE_BETWEEN,controls=[
+                            Button(content="Pick image from folder",icon=Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
+                            Button(content="Remove logo",icon=Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
+                        ]),
+                        Divider(color="grey"),
+                        Text(value=("Color scheme"), size=20, color=Colors.PRIMARY),
+                        Container(
+                            content=Row(controls=[
+                                Icon(icon=Icons.WARNING_AMBER_ROUNDED,color=Colors.WHITE),
+                                Container(expand=True,content=Text(
+                                    value="Due to c based tools not being supported on WASM, color checking is not available. Please be sensible with the colors you choose and ensure that the foreground color is always clearly darker.",
+                                    size=16,
+                                    color=Colors.WHITE
+                                )),
+                                ],
+                            ),
+                            padding=15,
+                            bgcolor=Colors.ORANGE_500,border_radius=30,
+                            margin=Margin.only(left=0, right=0, top=5, bottom=5,)
+                        ),
+                        ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
+                        ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
+                    ])
+                ),
+                Container(height=50)
+            ]),
+        )
+
+        # --- Lazy-load capture: wrap every local control built above into a
+        # handle object so the rest of the app can access them through
+        # create_bs_ref["instance"].<name>, exactly as if they were module-level. ---
+        handle = CreateBsHandle(create_layout, **{
+            k: v for k, v in locals().items()
+            if k not in ("create_layout",)
+        })
+        return handle
 
     def prop_changed():
         if _debounce_task["task"] is not None:
@@ -1134,131 +1174,137 @@ def main(page: Page):
 
     async def _debounced_update():
         await asyncio.sleep(0.3)
-        color_raw_1 = qr_color_scheme_primary.color  
+        cb = create_bs_ref["instance"]
+        if cb is None:
+            return
+
+        color_raw_1 = cb.qr_color_scheme_primary.color  
         if color_raw_1 and color_raw_1.startswith("#") and len(color_raw_1) == 9:
             color_rgb_1 = "#" + color_raw_1[3:] 
         else:
             color_rgb_1 = color_raw_1
 
-        color_raw_2 = qr_color_scheme_secondary.color  
+        color_raw_2 = cb.qr_color_scheme_secondary.color  
         if color_raw_2 and color_raw_2.startswith("#") and len(color_raw_2) == 9:
             color_rgb_2 = "#" + color_raw_2[3:] 
         else:
             color_rgb_2 = color_raw_2
 
-        error_correction = ERROR_CORRECTION_MAP.get(error_correction_dropdown.value, qrcode.constants.ERROR_CORRECT_M)
+        error_correction = ERROR_CORRECTION_MAP.get(cb.error_correction_dropdown.value, qrcode.constants.ERROR_CORRECT_M)
 
-        if qr_type_dropdown.value == "WIFI":
-            if wifi_protocol_dropdown.value != "No password":
-                qr_url_input_field.value = f"WIFI:S:{wifi_name.value};T:{wifi_protocol_dropdown.value};P:{wifi_password.value};;"
+        if cb.qr_type_dropdown.value == "WIFI":
+            if cb.wifi_protocol_dropdown.value != "No password":
+                cb.qr_url_input_field.value = f"WIFI:S:{cb.wifi_name.value};T:{cb.wifi_protocol_dropdown.value};P:{cb.wifi_password.value};;"
             else:
-                qr_url_input_field.value = f"WIFI:S:{wifi_name.value};T:nopass;;"
-            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2,error_correction)
-        elif qr_type_dropdown.value == "URL/Link":
-                if url_protocol_dropdown.value == "https://":
-                    create_val = "https://"+qr_url_input_field.value
+                cb.qr_url_input_field.value = f"WIFI:S:{cb.wifi_name.value};T:nopass;;"
+            display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+        elif cb.qr_type_dropdown.value == "URL/Link":
+                if cb.url_protocol_dropdown.value == "https://":
+                    create_val = "https://"+cb.qr_url_input_field.value
                 else:
-                    create_val = "http://"+qr_url_input_field.value
-                display_preview_qr(create_val, color_rgb_1, color_rgb_2,error_correction)
-        elif qr_type_dropdown.value == "Email":
-            if email_adv_checkbox.value:
+                    create_val = "http://"+cb.qr_url_input_field.value
+                display_preview_qr(create_val, color_rgb_1, color_rgb_2, error_correction)
+        elif cb.qr_type_dropdown.value == "Email":
+            if cb.email_adv_checkbox.value:
                 params = []
-                if email_subject.value:
-                    params.append(f"subject={urllib.parse.quote(email_subject.value)}")
-                if email_body.value:
-                    params.append(f"body={urllib.parse.quote(email_body.value)}")
+                if cb.email_subject.value:
+                    params.append(f"subject={urllib.parse.quote(cb.email_subject.value)}")
+                if cb.email_body.value:
+                    params.append(f"body={urllib.parse.quote(cb.email_body.value)}")
                 query = "&".join(params)
-                qr_url_input_field.value = f"mailto:{email_address.value}" + (f"?{query}" if query else "")
+                cb.qr_url_input_field.value = f"mailto:{cb.email_address.value}" + (f"?{query}" if query else "")
             else:
-                qr_url_input_field.value = f"mailto:{email_address.value}"
-            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+                cb.qr_url_input_field.value = f"mailto:{cb.email_address.value}"
+            display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
 
-        elif qr_type_dropdown.value == "Phone":
-            qr_url_input_field.value = f"tel:+{phone_prefix.value}{phone_number.value}"
-            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2,error_correction)
+        elif cb.qr_type_dropdown.value == "Phone":
+            cb.qr_url_input_field.value = f"tel:+{cb.phone_prefix.value}{cb.phone_number.value}"
+            display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
 
-        elif qr_type_dropdown.value == "SMS":
-            qr_url_input_field.value = f"SMSTO:{sms_number.value}:{sms_message.value}"
-            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+        elif cb.qr_type_dropdown.value == "SMS":
+            cb.qr_url_input_field.value = f"SMSTO:{cb.sms_number.value}:{cb.sms_message.value}"
+            display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
 
-        elif qr_type_dropdown.value == "Location":
-            qr_url_input_field.value = f"geo:{location_lat.value},{location_lng.value}"
-            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+        elif cb.qr_type_dropdown.value == "Location":
+            cb.qr_url_input_field.value = f"geo:{cb.location_lat.value},{cb.location_lng.value}"
+            display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
 
-        elif qr_type_dropdown.value == "Event":
-            if date_picker.start_value and date_picker.end_value and start_time_picker.value and end_time_picker.value:
-                start_date = normalize_picker_date(date_picker.start_value)
-                end_date = normalize_picker_date(date_picker.end_value)
-                dtstart_str = f"{start_date.strftime('%Y%m%d')}T{start_time_picker.value.strftime('%H%M%S')}"
-                dtend_str = f"{end_date.strftime('%Y%m%d')}T{end_time_picker.value.strftime('%H%M%S')}"
-                qr_url_input_field.value = (
+        elif cb.qr_type_dropdown.value == "Event":
+            if cb.date_picker.start_value and cb.date_picker.end_value and cb.start_time_picker.value and cb.end_time_picker.value:
+                start_date = normalize_picker_date(cb.date_picker.start_value)
+                end_date = normalize_picker_date(cb.date_picker.end_value)
+                dtstart_str = f"{start_date.strftime('%Y%m%d')}T{cb.start_time_picker.value.strftime('%H%M%S')}"
+                dtend_str = f"{end_date.strftime('%Y%m%d')}T{cb.end_time_picker.value.strftime('%H%M%S')}"
+                cb.qr_url_input_field.value = (
                     f"BEGIN:VCALENDAR\r\n"
                     f"VERSION:2.0\r\n"
                     f"BEGIN:VEVENT\r\n"
-                    f"SUMMARY:{event_title.value}\r\n"
-                    f"LOCATION:{event_location.value}\r\n"
+                    f"SUMMARY:{cb.event_title.value}\r\n"
+                    f"LOCATION:{cb.event_location.value}\r\n"
                     f"DTSTART:{dtstart_str}\r\n"
                     f"DTEND:{dtend_str}\r\n"
                     f"END:VEVENT\r\n"
                     f"END:VCALENDAR"
                 )
-                display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+                display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
             else:
-                qr_url_input_field.value = (
+                cb.qr_url_input_field.value = (
                     f"BEGIN:VCALENDAR\r\n"
                     f"VERSION:2.0\r\n"
                     f"BEGIN:VEVENT\r\n"
-                    f"SUMMARY:{event_title.value}\r\n"
-                    f"LOCATION:{event_location.value}\r\n"
+                    f"SUMMARY:{cb.event_title.value}\r\n"
+                    f"LOCATION:{cb.event_location.value}\r\n"
                     f"END:VEVENT\r\n"
                     f"END:VCALENDAR"
                 )
-                display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
+                display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
         else:
-            display_preview_qr(qr_url_input_field.value, color_rgb_1, color_rgb_2,error_correction)
+            display_preview_qr(cb.qr_url_input_field.value, color_rgb_1, color_rgb_2, error_correction)
 
     def type_trigger(e):
+        cb = create_bs_ref["instance"]
         selected = e.control.value 
-        qr_url_input_field.value=""
+        cb.qr_url_input_field.value=""
         #Hide everything
         for area in [
-            wifi_area, input_row, url_protocol_dropdown, email_general_content, email_adv_content,
-            phone_general_content, sms_general_content, location_general_content,
-            event_general_content,date_picker_button]:            
+            cb.wifi_area, cb.input_row, cb.url_protocol_dropdown, cb.email_general_content, cb.email_adv_content,
+            cb.phone_general_content, cb.sms_general_content, cb.location_general_content,
+            cb.event_general_content, cb.date_picker_button]:            
             area.visible = False
         #Empty everything
         for field in [
-            wifi_name, wifi_password, email_address, email_subject, email_body,
-            phone_prefix, phone_number, sms_prefix, sms_number, sms_message,
-            location_lat, location_lng, event_title, event_location, start_time_picker, end_time_picker]:
+            cb.wifi_name, cb.wifi_password, cb.email_address, cb.email_subject, cb.email_body,
+            cb.phone_prefix, cb.phone_number, cb.sms_prefix, cb.sms_number, cb.sms_message,
+            cb.location_lat, cb.location_lng, cb.event_title, cb.event_location, cb.start_time_picker, cb.end_time_picker]:
         
             field.value = ""    
         if selected == "WIFI":
-            wifi_area.visible=True
+            cb.wifi_area.visible=True
         elif selected == "URL/Link":
-            input_row.visible=True 
-            url_protocol_dropdown.visible = True
-            qr_url_input_field.hint_text = "Enter URL here"
-            qr_url_input_field.label = "Enter URL"
+            cb.input_row.visible=True 
+            cb.url_protocol_dropdown.visible = True
+            cb.qr_url_input_field.hint_text = "Enter URL here"
+            cb.qr_url_input_field.label = "Enter URL"
         elif selected == "Text":
-            input_row.visible=True 
-            qr_url_input_field.hint_text = "Enter text here"
-            qr_url_input_field.label = "Enter text"
+            cb.input_row.visible=True 
+            cb.qr_url_input_field.hint_text = "Enter text here"
+            cb.qr_url_input_field.label = "Enter text"
         elif selected == "Email":
-            email_general_content.visible=True 
+            cb.email_general_content.visible=True 
         elif selected == "Phone":
-            phone_general_content.visible=True 
+            cb.phone_general_content.visible=True 
         elif selected == "SMS":
-            sms_general_content.visible=True
+            cb.sms_general_content.visible=True
         elif selected == "Location":
-            location_general_content.visible=True
+            cb.location_general_content.visible=True
         elif selected == "Event":
-            event_general_content.visible=True
-            date_picker_button.visible = True
+            cb.event_general_content.visible=True
+            cb.date_picker_button.visible = True
         prop_changed()
         page.update()
 
     def get_content():
+        cb = create_bs_ref["instance"]
         wifi_subcontainer.visible=False
         wifi_pass_display.visible=False
         extra_vis.visible=False
@@ -1266,61 +1312,61 @@ def main(page: Page):
         longitude_container.visible=False
         sms_container.visible=False
         event_summary_container.visible=False
-        if qr_type_dropdown.value == "WIFI":
+        if cb.qr_type_dropdown.value == "WIFI":
             wifi_subcontainer.visible=True
-            text_content.value=wifi_name.value
+            text_content.value=cb.wifi_name.value
             text_label.value= "Name"
-            wifi_protocol.value = wifi_protocol_dropdown.value
+            wifi_protocol.value = cb.wifi_protocol_dropdown.value
             if wifi_protocol.value != "No password":
-                wifi_pass.value = wifi_password.value
+                wifi_pass.value = cb.wifi_password.value
                 wifi_pass_display.visible=True
             
-        elif qr_type_dropdown.value == "URL/Link":
-            text_content.value= f"{url_protocol_dropdown.value}{qr_url_input_field.value}"
+        elif cb.qr_type_dropdown.value == "URL/Link":
+            text_content.value= f"{cb.url_protocol_dropdown.value}{cb.qr_url_input_field.value}"
             text_label.value = "Link"
 
-        elif qr_type_dropdown.value == "Email":
-            text_content.value= f"{email_address.value}"
+        elif cb.qr_type_dropdown.value == "Email":
+            text_content.value= f"{cb.email_address.value}"
             text_label.value = "Address"
-            if email_adv_checkbox.value:
-                email_subject_summary.value =email_subject.value
-                email_body_summary.value =email_body.value
+            if cb.email_adv_checkbox.value:
+                email_subject_summary.value = cb.email_subject.value
+                email_body_summary.value = cb.email_body.value
                 email_advanced_container.visible=True
                 extra_vis.visible=True
-        elif qr_type_dropdown.value == "Phone":
-            text_content.value= f"+{phone_prefix.value} {phone_number.value}"
+        elif cb.qr_type_dropdown.value == "Phone":
+            text_content.value= f"+{cb.phone_prefix.value} {cb.phone_number.value}"
             text_label.value= "Number"
 
-        elif qr_type_dropdown.value == "SMS":
-            text_content.value= f"+{sms_prefix.value} {sms_number.value}"
+        elif cb.qr_type_dropdown.value == "SMS":
+            text_content.value= f"+{cb.sms_prefix.value} {cb.sms_number.value}"
             text_label.value = "Receiver"
-            sms_msg.value = sms_message.value
+            sms_msg.value = cb.sms_message.value
             sms_container.visible=True
             extra_vis.visible=True
             
-        elif qr_type_dropdown.value == "Location":
+        elif cb.qr_type_dropdown.value == "Location":
             text_label.value = "Latitude"
-            text_content.value= f"{location_lat.value}"
-            longitude.value = location_lng.value
+            text_content.value= f"{cb.location_lat.value}"
+            longitude.value = cb.location_lng.value
             longitude_container.visible=True
 
-        elif qr_type_dropdown.value == "Event":
+        elif cb.qr_type_dropdown.value == "Event":
             text_label.value = "Event"
-            text_content.value = event_title.value
-            event_title_summary.value = event_title.value
-            event_location_summary.value = event_location.value
-            event_start_summary.value = start_time_picker.value
-            event_end_summary.value = end_time_picker.value
+            text_content.value = cb.event_title.value
+            event_title_summary.value = cb.event_title.value
+            event_location_summary.value = cb.event_location.value
+            event_start_summary.value = cb.start_time_picker.value
+            event_end_summary.value = cb.end_time_picker.value
             extra_vis.visible=True
             event_summary_container.visible=True
 
-        elif qr_type_dropdown.value == "Text":
-            text_content.value=qr_url_input_field.value
+        elif cb.qr_type_dropdown.value == "Text":
+            text_content.value=cb.qr_url_input_field.value
             text_label.value = "Text"
 
-        error_correction_content.value = error_correction_dropdown.value
-        
-        
+        error_correction_content.value = cb.error_correction_dropdown.value
+
+
     create_button = Button(
         icon=Icon(icon=Icons.ADD_ROUNDED, size=24), 
         content=Text(value="Generate a new QR code",size=24),
@@ -1567,9 +1613,6 @@ def main(page: Page):
     )
     page.add(safearea)
 
-
-    page.overlay.append(create_layout)
-
     #Updates the app on resize
     def resize_handler():
         if page.width < 600:
@@ -1580,7 +1623,6 @@ def main(page: Page):
 
     #Initial exec functions
     page.on_resize = resize_handler
-    display_preview_qr("","black","white",ERROR_CORRECTION_MAP["M (15%)"])
 
 #Run the app
 ft.run(main, assets_dir="program_variants/assets")
