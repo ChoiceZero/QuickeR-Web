@@ -406,7 +406,7 @@ def main(page: ft.Page):
             alignment=ft.Alignment.CENTER,
             actions=[
                 ft.TextButton("No", on_click=lambda e: page.pop_dialog()),
-                ft.TextButton(icon=ft.Icons.DELETE, bgcolor=ft.Colors.RED_900, content="Yes", on_click=lambda e: clear_summary_action())],
+                ft.Button(icon=ft.Icons.DELETE, bgcolor=ft.Colors.RED_900, content="Yes", on_click=lambda e: clear_summary_action())],
             open=True))
 
     #Clears the QR creation bottom sheet and resets all input fields
@@ -862,7 +862,7 @@ def main(page: ft.Page):
             ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
                 ft.Icon(icon=ft.Icons.TEXT_FIELDS_ROUNDED),
                 ft.Text(value=("Advanced options"), size=20),
-                ft.Container(border_radius=50,bgcolor=ft.Colors.SURFACE_CONTAINER,content=email_adv_checkbox)
+                email_adv_checkbox
             ]),
         ])
 
