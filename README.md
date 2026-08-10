@@ -45,6 +45,8 @@ QuickeR-Web is a platform that lets you create QR codes but without accounts, li
 [MIT](https://choosealicense.com/licenses/mit/)
 
 ## Run the app
+>[!WARNING]
+>It is heavily recommended to use Python 3.12 or above to run the app.
 
 ### flet
 
@@ -100,6 +102,8 @@ uv run flet run --android
 For more details on running the app, refer to the [Getting Started Guide](https://flet.dev/docs/).
 
 ## Build the app
+>[!WARNING]
+>It is heavily recommended to use Python 3.12 or above to compile the app.
 
 ### Android
 
