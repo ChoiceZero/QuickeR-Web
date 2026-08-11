@@ -27,7 +27,7 @@ QuickeR-Web is a platform that lets you create QR codes but without accounts, li
 - Allows to change the colors of the QRs.
 
 > [!WARNING] 
-> Due to c based tools (such as OpenCV or Pyztools) not being supported on WASM, color checking and readability checking are not available.
+> Due to c based tools (such as OpenCV or Pyztools) not being supported on WASM, readability checking is not available.
 
 - Has a preview that updates on every change.
 - Downloads the codes.
