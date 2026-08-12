@@ -747,7 +747,6 @@ def main(page: ft.Page):
                             ])
                         ),
                         ft.Row(alignment=ft.MainAxisAlignment.CENTER,controls=[ft.Text(value="Made with ❤️ in Spain.", size=15, color=ft.Colors.GREY_400)]),
-                        ft.Text(value="© 2026 Unax Martinez Llorente.", size=15, color=ft.Colors.GREY_400),
                         ft.Container(height=50),    
                     ]
                 )
