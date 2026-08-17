@@ -1130,20 +1130,6 @@ def main(page: ft.Page):
                         ]),
                         ft.Divider(color="grey"),
                         ft.Text(value=("Color scheme"), size=20, color=ft.Colors.PRIMARY),
-                        ft.Container(
-                            content=ft.Row(controls=[
-                                ft.Icon(icon=ft.Icons.WARNING_AMBER_ROUNDED,color=ft.Colors.WHITE),
-                                ft.Container(expand=True,content=ft.Text(
-                                    value="Due to c based tools not being supported on WASM, color checking is not available. Please be sensible with the colors you choose and ensure that the foreground color is always clearly darker.",
-                                    size=16,
-                                    color=ft.Colors.WHITE
-                                )),
-                                ],
-                            ),
-                            padding=15,
-                            bgcolor=ft.Colors.ORANGE_500,border_radius=30,
-                            margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
-                        ),
                         ft.ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
                         ft.ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
                     ])
