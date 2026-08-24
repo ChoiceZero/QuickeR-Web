@@ -442,19 +442,6 @@ def main(page: ft.Page):
             about_bs_ref["instance"].open = False
         page.update()   
 
-    #Sets the GitHub icon color based on the current theme mode and whether it should be inverted
-    def get_github_icon_by_mode(invert=False):
-        if invert:
-            if page.theme_mode == ft.ThemeMode.DARK:
-                return ft.Image("github-white-icon.webp",color="black",width=20,height=20)
-            else:
-                return ft.Image("github-white-icon.webp",color="white",width=20,height=20)
-        else:
-            if page.theme_mode == ft.ThemeMode.DARK:
-                return ft.Image("github-white-icon.webp",color="white",width=20,height=20)
-            else:
-                return ft.Image("github-white-icon.webp",color="black",width=20,height=20)
-
     ###LAYOUTS AND CONTROLS--------------------------------------------------------------
 
     #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper()) -> unused
@@ -662,7 +649,7 @@ def main(page: ft.Page):
                         content=ft.Row(
                             controls=[
                                 ft.IconButton(
-                                    icon=ft.Image(os.path.join(ASSET_DIR, "github-white-icon.webp"), color=ft.Colors.PRIMARY, width=20, height=20),
+                                    icon=ft.Image(src="github-white-icon.webp", color=ft.Colors.PRIMARY, width=20, height=20),
                                     style=ft.ButtonStyle(
                                         shape=ft.CircleBorder(), 
                                         padding=10, 
@@ -1595,7 +1582,7 @@ def main(page: ft.Page):
                 #appearance_setting,
                 bmac_button_top_bar,
                 ft.IconButton(
-                    icon=get_github_icon_by_mode(),
+                    icon=ft.Image("github-white-icon.webp",color=ft.Colors.INVERSE_SURFACE,width=20,height=20),
                     on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web","BLANK"))
                 ),
                 ft.Button(
