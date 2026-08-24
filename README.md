@@ -1,5 +1,6 @@
+<img width="1344" height="244" alt="Diseño sin título (1)" src="https://github.com/user-attachments/assets/462bd964-55c3-4025-85e3-ff0231c931db" />
 
-# QuickeR-Web
+# QuickeR-Web - Create QRs quicker!
 
 QuickeR-Web is a platform that lets you create QR codes but without accounts, limits, ads or purchases. It also doesn't collect any personal data, analytics, telemetry or other kind of info. It was primarily created out of pure spite, as most other websites have shitty practices to get the most revenue out of users. Besides, the code has mostly been written by hand, about a 15% of the entire project has been written by AI.
 
