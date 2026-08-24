@@ -579,7 +579,7 @@ def main(page: ft.Page):
                                     icon_size=20
                                 )
                             ),
-                            ft.Column(spacing=-3,controls=[
+                            ft.Column(spacing=-3,expand=True, controls=[
                                 ft.Text(value="Support QuickeR", size=20, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
                                 ft.Text(value="Support the project and help it grow!", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200),),
                             ]
@@ -643,11 +643,10 @@ def main(page: ft.Page):
                                         icon_size=20
                                     )
                                 ),
-                                ft.Column(spacing=-3,controls=[
+                                ft.Column(spacing=-3,expand=True, controls=[
                                     ft.Text(value="QuickeR App", size=20, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
-                                    ft.Text(value="Check out the cross-platform app!", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200), overflow=ft.TextOverflow.ELLIPSIS, max_lines=1),
+                                    ft.Text(value="Check out the cross-platform app!", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200)),
                                 ]),
-                                ft.Container(expand=True),
                                 ft.Icon(icon=ft.Icons.OPEN_IN_NEW_ROUNDED, color=ft.Colors.INVERSE_SURFACE, size=20),
                             ]
                         ),
@@ -672,11 +671,10 @@ def main(page: ft.Page):
                                         icon_size=20
                                     )
                                 ),
-                                ft.Column(spacing=-3,controls=[
+                                ft.Column(spacing=-3,expand=True, controls=[
                                     ft.Text(value="Github repository", size=20, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
-                                    ft.Text(value="Source code, bugs and release notes", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200), overflow=ft.TextOverflow.ELLIPSIS, max_lines=1),
+                                    ft.Text(value="Source code, bugs and release notes", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200)),
                                 ]),
-                                ft.Container(expand=True),
                                 ft.Icon(icon=ft.Icons.OPEN_IN_NEW_ROUNDED, color=ft.Colors.INVERSE_SURFACE, size=20),
                             ]
                         ),
@@ -701,11 +699,10 @@ def main(page: ft.Page):
                                         icon_size=20
                                     )
                                 ),
-                                ft.Column(spacing=-3,controls=[
+                                ft.Column(spacing=-3,expand=True, controls=[
                                     ft.Text(value="Unax Martinez Llorente", size=20, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
-                                    ft.Text(value="Developer (aka ChoiceZero)", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200), overflow=ft.TextOverflow.ELLIPSIS, max_lines=1),
+                                    ft.Text(value="Developer (aka ChoiceZero)", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200)),
                                 ]),
-                                ft.Container(expand=True),
                                 ft.Icon(icon=ft.Icons.OPEN_IN_NEW_ROUNDED, color=ft.Colors.INVERSE_SURFACE, size=20),
                             ]
                         ),
@@ -731,9 +728,9 @@ def main(page: ft.Page):
                                         icon_size=20
                                     )
                                 ),
-                                ft.Column(spacing=-3,controls=[
+                                ft.Column(spacing=-3,expand=True, controls=[
                                     ft.Text(value="Privacy", size=20, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
-                                    ft.Text(value="See privacy details", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200), overflow=ft.TextOverflow.ELLIPSIS, max_lines=1),
+                                    ft.Text(value="See privacy details", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200)),
                                 ]),
                             ]
                         ),
