@@ -557,6 +557,7 @@ def main(page: ft.Page):
                         collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=ft.BorderRadius.only(top_left=30, top_right=30, bottom_left=30, bottom_right=30)),
                         title=ft.Row(controls=[
                             ft.IconButton(
+                                disabled=True,
                                 icon=ft.CupertinoIcons.HEART_FILL, 
                                 style=ft.ButtonStyle(
                                     shape=ft.CircleBorder(), 
@@ -621,6 +622,7 @@ def main(page: ft.Page):
                         content=ft.Row(
                             controls=[
                                 ft.IconButton(
+                                    disabled=True,
                                     icon=ft.Icons.STAR_ROUNDED,
                                     style=ft.ButtonStyle(
                                         shape=ft.CircleBorder(), 
@@ -649,6 +651,7 @@ def main(page: ft.Page):
                         content=ft.Row(
                             controls=[
                                 ft.IconButton(
+                                    disabled=True,
                                     icon=ft.Image(src="github-white-icon.webp", color=ft.Colors.PRIMARY, width=20, height=20),
                                     style=ft.ButtonStyle(
                                         shape=ft.CircleBorder(), 
@@ -677,6 +680,7 @@ def main(page: ft.Page):
                         content=ft.Row(
                             controls=[
                                 ft.IconButton(
+                                    disabled=True,
                                     icon=ft.Icons.PERSON_2_ROUNDED,
                                     style=ft.ButtonStyle(
                                         shape=ft.CircleBorder(), 
@@ -706,6 +710,7 @@ def main(page: ft.Page):
                         title=ft.Row(
                             controls=[
                                 ft.IconButton(
+                                    disabled=True,
                                     icon=ft.Icons.SHIELD_ROUNDED, 
                                     style=ft.ButtonStyle(
                                         shape=ft.CircleBorder(), 
