@@ -769,7 +769,7 @@ def main(page: ft.Page):
         ])
 
         #URL
-        url_protocol_dropdown = ft.Dropdown(border_radius=50,fill_color=ft.Colors.SURFACE_CONTAINER_LOW,filled=True,value="https://",border_width=0,options=[
+        url_protocol_dropdown = ft.Dropdown(border_radius=50,fill_color=ft.Colors.SURFACE_CONTAINER_LOW,filled=True,value="https://",on_select=lambda e: prop_changed(),border_width=0,options=[
             ft.DropdownOption(text="https://"),
             ft.DropdownOption(text="http://"),
             ])
@@ -1055,40 +1055,42 @@ def main(page: ft.Page):
                 ft.Container(border_radius=10,expand=True,bgcolor=ft.Colors.SURFACE_CONTAINER,content=qr_url_input_field),
             ]),
         ])
+        save_qr_button = ft.Button(
+            elevation=0, icon=ft.Icons.CHECK, content=ft.Text("Save QR", size=16),
+            height=50, color=ft.Colors.SURFACE, bgcolor=ft.Colors.PRIMARY,
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=ft.BorderRadius.only(top_left=50, top_right=25, bottom_left=50, bottom_right=25))),
+            on_click=lambda e: qr_create_triggered(),
+        )
 
-        create_layout= ft.BottomSheet(draggable=False,use_safe_area=True,scrollable=False,fullscreen=True,open=False,on_dismiss=lambda e: clean_create_bs_up(),content=
-            ft.Column(horizontal_alignment="center",scroll=ft.ScrollMode.AUTO,controls=[
-                ft.Container(bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,expand=False,content=preview_qr_area,padding=20,),
-                ft.Container(bgcolor=ft.Colors.SECONDARY_CONTAINER,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                    ft.Row(alignment="center",controls=[
-                        ft.IconButton(
-                            icon=ft.Icons.CLOSE,
-                            expand=True, 
-                            on_click=lambda e: clean_create_bs_up(),    
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=12),
-                                bgcolor={"": ft.Colors.RED_500}, 
-                            )
-                        ),
-                        ft.IconButton(
-                            icon=ft.Icons.CHECK,
-                            expand=True,
-                            on_click=lambda e: qr_create_triggered(), 
-                            style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=12),
-                                bgcolor={"": ft.Colors.INVERSE_PRIMARY}, 
-                            )
-                        ),
-                    ])
-                ),
-                ft.Container(bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                    ft.Column(controls=[
-                        ft.Row(tight=True,col={"xs": 12, "lg": 3}, controls=[
-                            ft.Icon(icon=ft.Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED),
-                            ft.Text(value=("QR Type"), size=20),
-                        ]),
-                        ft.Container(col={"xs": 12, "lg": 2},content=qr_type_dropdown),
-                        ft.Divider(color="grey"),
+        create_layout= ft.BottomSheet(
+            draggable=False, use_safe_area=True, scrollable=False, fullscreen=True, open=False,
+            on_dismiss=lambda e: clean_create_bs_up(),
+            content=ft.Column(horizontal_alignment="center", scroll=ft.ScrollMode.AUTO, controls=[
+                ft.Container(bgcolor=ft.Colors.INVERSE_PRIMARY, border_radius=30, expand=False, content=preview_qr_area, padding=20, margin=ft.Margin.only(top=20)),
+                ft.Row(alignment="center", spacing=3, controls=[
+                    save_qr_button,
+                    ft.IconButton(
+                        icon=ft.Icons.CLOSE_ROUNDED, height=50, width=45, alignment=ft.Alignment.CENTER_LEFT,
+                        icon_color=ft.Colors.INVERSE_SURFACE, bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
+                        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=ft.BorderRadius.only(top_left=25, top_right=50, bottom_left=25, bottom_right=50))),
+                        on_click=lambda e: clean_create_bs_up(),
+                    ),
+                ]),
+                ft.Divider(color=ft.Colors.INVERSE_SURFACE, thickness=0.2, leading_indent=20, trailing_indent=20, height=50),
+                ft.ExpansionTile(
+                    title=ft.Row(controls=[ft.Icon(icon=ft.Icons.EDIT_ATTRIBUTES_ROUNDED), ft.Text(value="Main content", size=16)]),
+                    tile_padding=ft.Padding.only(left=20, right=20, top=10, bottom=10),
+                    controls_padding=ft.Padding.only(left=20, right=20, bottom=20),
+                    bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH, collapsed_bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                    margin=ft.Margin.only(left=20, right=20),
+                    shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=20),
+                    collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=20),
+                    expanded=True,
+                    controls=ft.Column(controls=[
+                        ft.Container(height=0.2, bgcolor=ft.Colors.INVERSE_SURFACE, margin=ft.Margin.only(left=0, right=0, top=0, bottom=5)),
+                        ft.Row(tight=True, col={"xs": 12, "lg": 3}, controls=[ft.Icon(icon=ft.Icons.ARROW_DROP_DOWN_CIRCLE_OUTLINED), ft.Text(value="QR Type", size=20)]),
+                        ft.Container(col={"xs": 12, "lg": 2}, content=qr_type_dropdown),
+                        ft.Container(height=0.2, bgcolor=ft.Colors.INVERSE_SURFACE, margin=ft.Margin.only(left=0, right=0, top=0, bottom=5)),
                         wifi_area,
                         input_row,
                         email_general_content,
@@ -1097,45 +1099,64 @@ def main(page: ft.Page):
                         sms_general_content,
                         location_general_content,
                         event_general_content,
-                        ft.Divider(color="grey"),
-                        ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
-                            ft.Row(controls=[
-                                ft.Icon(icon=ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED),
-                                ft.Text(value=("Error correction level"), size=20),
-                            ]),
-                            error_correction_dropdown
-                        ]), 
-                    ])
+                        ft.Container(height=0.2, bgcolor=ft.Colors.INVERSE_SURFACE, margin=ft.Margin.only(left=0, right=0, top=0, bottom=5)),
+                        ft.Row(wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN, controls=[
+                            ft.Row(controls=[ft.Icon(icon=ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED), ft.Text(value="Error correction level", size=20)]),
+                            error_correction_dropdown,
+                        ]),
+                    ]),
                 ),
-                ft.Text(value="Customization", size=18,color=ft.Colors.PRIMARY),
-                ft.Container(bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,border_radius=30,margin=ft.Margin.only(left=20, right=20, top=5, bottom=5),padding=20,content=
-                    ft.Column(controls=[
-                        ft.Row(controls=[ft.Icon(icon=ft.Icons.ADD_PHOTO_ALTERNATE_ROUNDED),ft.Text(value=("Logo/Branding"), size=20)]),
+                ft.ExpansionTile(
+                    title=ft.Row(controls=[ft.Icon(icon=ft.Icons.COLOR_LENS_ROUNDED), ft.Text(value="Customization", size=16)]),
+                    tile_padding=ft.Padding.only(left=20, right=20, top=10, bottom=10),
+                    controls_padding=ft.Padding.only(left=20, right=20, bottom=20),
+                    bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH, collapsed_bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+                    margin=ft.Margin.only(left=20, right=20),
+                    shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=20),
+                    collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=20),
+                    controls=ft.Column(controls=[
+                        ft.Container(height=0.2, bgcolor=ft.Colors.INVERSE_SURFACE, margin=ft.Margin.only(left=0, right=0, top=0, bottom=5)),
+                        ft.Row(controls=[ft.Icon(icon=ft.Icons.ADD_PHOTO_ALTERNATE_ROUNDED), ft.Text(value="Logo/Branding", size=20)]),
                         ft.Container(
                             content=ft.Row(controls=[
-                                ft.Icon(icon=ft.Icons.ERROR_OUTLINE_ROUNDED,color=ft.Colors.WHITE),
-                                ft.Container(expand=True,content=ft.Text(
-                                    value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, it is highly recommended that H level error correction is used.",
-                                    size=16,
-                                    color=ft.Colors.WHITE
+                                ft.Icon(icon=ft.Icons.ERROR_OUTLINE_ROUNDED, color=ft.Colors.WHITE),
+                                ft.Container(expand=True, content=ft.Text(
+                                    value="As logos take up a big chunk of the QR's area, scanability may be greatly reduced. Thus, error correction is overrided to level H, though no guarantees it will work first try.",
+                                    size=16, color=ft.Colors.WHITE,
                                 )),
-                                ],
-                            ),
-                            padding=15,
-                            bgcolor=ft.Colors.RED_500,border_radius=30,
-                            margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
+                            ]),
+                            padding=15, bgcolor=ft.Colors.RED_500, border_radius=30,
+                            margin=ft.Margin.only(left=0, right=0, top=5, bottom=5),
                         ),
-                        ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
-                            ft.Button(content="Pick image from folder",icon=ft.Icons.FOLDER_COPY_ROUNDED, on_click=lambda e: asyncio.ensure_future(pick_logo())),
-                            ft.Button(content="Remove logo",icon=ft.Icons.DELETE_ROUNDED, on_click=lambda e: remove_logo()),
+                        ft.Row(alignment=ft.MainAxisAlignment.CENTER, spacing=3, controls=[
+                            ft.Button(
+                                elevation=0, icon=ft.Icons.IMAGE_ROUNDED, content=ft.Text("Pick Logo", size=16),
+                                height=50, color=ft.Colors.SURFACE, bgcolor=ft.Colors.PRIMARY,
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(
+                                        radius=ft.BorderRadius.only(top_left=50, top_right=25, bottom_left=50, bottom_right=25)
+                                    ),
+                                ),
+                                on_click=lambda e: asyncio.ensure_future(pick_logo()),
+                            ),
+                            ft.IconButton(
+                                icon=ft.Icons.DELETE_ROUNDED, height=50, width=45, alignment=ft.Alignment.CENTER_LEFT,
+                                icon_color=ft.Colors.SURFACE, bgcolor=ft.Colors.PRIMARY,
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(
+                                        radius=ft.BorderRadius.only(top_left=25, top_right=50, bottom_left=25, bottom_right=50)
+                                    ),
+                                ),
+                                on_click=lambda e: remove_logo(),
+                            ),
                         ]),
-                        ft.Divider(color="grey"),
-                        ft.Text(value=("Color scheme"), size=20, color=ft.Colors.PRIMARY),
-                        ft.ExpansionTile(title="Primary color:",controls=qr_color_scheme_primary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
-                        ft.ExpansionTile(title="Background color:",controls=qr_color_scheme_secondary,shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20),collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(width=0), radius=20)),
-                    ])
+                        ft.Divider(thickness=0.2, color=ft.Colors.INVERSE_SURFACE),
+                        ft.Row(controls=[ft.Icon(icon=ft.Icons.COLOR_LENS_ROUNDED), ft.Text(value="Color scheme", size=20)]),
+                        ft.ExpansionTile(title="Primary color:",tile_padding=ft.Padding(left=15,right=15), controls=qr_color_scheme_primary, bgcolor=ft.Colors.SURFACE_CONTAINER_LOW, collapsed_bgcolor=ft.Colors.SURFACE_CONTAINER_LOW, shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=15), collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=15)),
+                        ft.ExpansionTile(title="Background color:", tile_padding=ft.Padding(left=15,right=15), controls=qr_color_scheme_secondary, bgcolor=ft.Colors.SURFACE_CONTAINER_LOW, collapsed_bgcolor=ft.Colors.SURFACE_CONTAINER_LOW, shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=15), collapsed_shape=ft.RoundedRectangleBorder(side=ft.BorderSide(style=ft.BorderStyle.NONE), radius=15)),
+                    ]),
                 ),
-                ft.Container(height=50)
+                ft.Container(height=50),
             ]),
         )
 
