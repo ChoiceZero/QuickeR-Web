@@ -613,7 +613,6 @@ def main(page: ft.Page):
                     ft.Row(alignment="center", controls=ft.Text(value="About", size=18, color=ft.Colors.PRIMARY)),
                     ft.Container(
                         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH, 
-                        margin=ft.Margin.only(bottom=-2),
                         width=600,
                         on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR", "BLANK")),
                         align=ft.Alignment.CENTER,
@@ -640,6 +639,7 @@ def main(page: ft.Page):
                             ]
                         ),
                     ),
+                    ft.Container(height=0.2, bgcolor=ft.Colors.GREY_500, width=580,align=ft.Alignment.CENTER, margin=ft.Margin.only(top=7, bottom=7)),
                     ft.Container(
                         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH, 
                         margin=ft.Margin.only(bottom=5),
