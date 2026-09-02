@@ -584,8 +584,8 @@ def main(page: ft.Page):
                                     ]),
                                     ft.Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=ft.Colors.INVERSE_SURFACE),
                                     ft.Row(wrap=True,alignment="center", controls=ft.Row(wrap=True,tight=True, controls=[
-                                        ft.Button(margin=ft.Margin.only(top=10), content=ft.Text(value="Buy Me a Coffee"), icon=ft.Icons.COFFEE_ROUNDED, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), padding=10, bgcolor=ft.Colors.PRIMARY, color=ft.Colors.SURFACE, overlay_color=ft.Colors.ON_PRIMARY_CONTAINER)),
-                                        ft.Button(margin=ft.Margin.only(top=10), content=ft.Text(value="GitHub Sponsors"), icon=ft.CupertinoIcons.HEART_FILL, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), padding=10, bgcolor=ft.Colors.PRIMARY, color=ft.Colors.SURFACE, overlay_color=ft.Colors.ON_PRIMARY_CONTAINER)),
+                                        ft.Button(margin=ft.Margin.only(top=10), content=ft.Text(value="Buy Me a Coffee"), icon=ft.Icons.COFFEE_ROUNDED, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), padding=10, bgcolor=ft.Colors.PRIMARY, color=ft.Colors.SURFACE, overlay_color=ft.Colors.ON_PRIMARY_CONTAINER), on_click=lambda e: asyncio.ensure_future(open_url("https://www.buymeacoffee.com/choicezero", "BLANK"))),
+                                        ft.Button(margin=ft.Margin.only(top=10), content=ft.Text(value="GitHub Sponsors"), icon=ft.CupertinoIcons.HEART_FILL, style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12), padding=10, bgcolor=ft.Colors.PRIMARY, color=ft.Colors.SURFACE, overlay_color=ft.Colors.ON_PRIMARY_CONTAINER), on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/sponsors/ChoiceZero","BLANK"))),
                                     ])),
                                 ]),
                             ),
@@ -1560,7 +1560,7 @@ def main(page: ft.Page):
         color="yellow",
         #bgcolor=ft.Colors.YELLOW_900,
         icon_color="yellow",
-        #on_click=lambda e:asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR","BLANK"))
+        on_click=lambda e:asyncio.ensure_future(open_url("https://buymeacoffee.com/ChoiceZero","BLANK"))
     )
 
     top_bar = ft.Row(controls=[
