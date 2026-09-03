@@ -579,7 +579,7 @@ def main(page: ft.Page):
                                 content=ft.Column(controls=[
                                     ft.Row(controls=[
                                         ft.Icon(icon=ft.Icons.PAYMENT_ROUNDED, color=ft.Colors.INVERSE_SURFACE),
-                                        ft.Text(value="Donate", size=25, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                        ft.Text(value="Tip", size=25, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
                                         ft.Container(content=ft.Text(value="ONE TIME", size=10, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)), margin=ft.Margin.only(left=5), bgcolor=ft.Colors.TERTIARY_CONTAINER, border=ft.Border.all(width=3, color=ft.Colors.TERTIARY), border_radius=10, padding=5),
                                     ]),
                                     ft.Text(value="If you want to support the project, you can do so by donating via Buy Me a Coffee or GitHub Sponsors.", size=15, color=ft.Colors.INVERSE_SURFACE),
