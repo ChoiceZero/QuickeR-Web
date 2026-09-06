@@ -490,12 +490,6 @@ def main(page: ft.Page):
             page.update()   
 
         ###LAYOUTS AND CONTROLS--------------------------------------------------------------
-
-        #appearance_setting = IconButton(icon=Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper()) -> unused
-
-        ##MAIN LAYOUT --------------------------------------------------------------
-
-
         ##ABOUT BOTTOM SHEET (lazy-built) --------------------------------------------------------------
         def build_about_bs():
             about_bs = ft.BottomSheet(
@@ -513,8 +507,18 @@ def main(page: ft.Page):
                         margin=ft.Margin.only(left=5, right=5, top=0, bottom=0),
                         visible=True,
                         controls=[
+                        ft.Container(
+                            padding=5,
+                            border_radius=20,
+                            margin=ft.Margin.only(bottom=-10),
+                            bgcolor=ft.Colors.SECONDARY_CONTAINER,
+                            content=ft.Icon(
+                                icon=ft.Icons.QR_CODE_2_ROUNDED, 
+                                color=ft.Colors.PRIMARY, 
+                                size=100
+                            ),
+                        ),
                         ft.Row(alignment=ft.MainAxisAlignment.CENTER, margin=ft.Margin.only(left=0, right=0, top=20, bottom=-10), controls=[
-                            ft.Icon(icon=ft.Icons.QR_CODE_2_ROUNDED, color=ft.Colors.INVERSE_SURFACE, size=40),
                             ft.Text(value="QuickeR", size=40, font_family="MaterialRoundedBold", align=ft.Alignment.CENTER, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
                             ft.Container(
                                 border_radius=10,
@@ -523,14 +527,14 @@ def main(page: ft.Page):
                                     value="Web",
                                     size=11,
                                     font_family="MaterialRoundedBold",
-                                    color=ft.Colors.WHITE,
+                                    color=ft.Colors.INVERSE_SURFACE,
                                     style=ft.TextStyle(weight=ft.FontWeight.BOLD)
                                 ),
                                 border=ft.Border.all(width=3,color=ft.Colors.TERTIARY),
                                 padding=7
                             ),
                         ]),
-                        ft.Text(value="Quick | Simple | Private | Open Source", size=15, align=ft.Alignment.CENTER, color=ft.Colors.GREY_400, style=ft.TextStyle(weight=ft.FontWeight.W_200), margin=ft.Margin.only(left=0, right=0, top=0, bottom=10)),
+                        ft.Text(value="Your QRs, made quicker", size=15, align=ft.Alignment.CENTER, color=ft.Colors.GREY_400, style=ft.TextStyle(weight=ft.FontWeight.W_200), margin=ft.Margin.only(left=0, right=0, top=0, bottom=10)),
                         ft.Row(
                             alignment="center",
                             #wrap=True,
@@ -841,7 +845,7 @@ def main(page: ft.Page):
             )
 
             wifi_password_setting= ft.Column(visible=True,controls=[
-                ft.Divider(color=ft.Colors.GREY),
+                ft.Divider(color=ft.Colors.GREY, thickness=0.2),
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
                     ft.Icon(icon=ft.Icons.PASSWORD_ROUNDED),
                     ft.Text(value=("WIFI password"), size=20),
@@ -858,14 +862,14 @@ def main(page: ft.Page):
                     bgcolor=ft.Colors.SURFACE_CONTAINER,
                     content=wifi_name
                 ),
-                ft.Divider(color=ft.Colors.GREY),
+                ft.Divider(color=ft.Colors.GREY, thickness=0.2),
                 ft.Container(
                     content=ft.Row(controls=[
-                        ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.    Colors.WHITE),
+                        ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.Colors.INVERSE_SURFACE),
                         ft.Container(expand=True,content=ft.Text(
                             value="If your network has no password, select it here!",
                             size=16,
-                            color=ft.Colors.WHITE
+                            color=ft.Colors.INVERSE_SURFACE,
                         )),
                         ],
                     ),
@@ -895,7 +899,7 @@ def main(page: ft.Page):
                     bgcolor=ft.Colors.SURFACE_CONTAINER,
                     content=email_address
                 ),
-                ft.Divider(color=ft.Colors.GREY),
+                ft.Divider(color=ft.Colors.GREY, thickness=0.2),
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[
                     ft.Icon(icon=ft.Icons.TEXT_FIELDS_ROUNDED),
                     ft.Text(value=("Advanced options"), size=20),
@@ -916,7 +920,7 @@ def main(page: ft.Page):
             email_adv_content = ft.Column(visible=False, controls=[
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.SUBJECT_ROUNDED), ft.Text(value="Subject", size=20)]),
                 ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=email_subject),
-                ft.Divider(color=ft.Colors.GREY),
+                ft.Divider(color=ft.Colors.GREY,thickness=0.2),
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.TEXT_FIELDS_ROUNDED), ft.Text(value="Body", size=20)]),
                 ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=email_body),
             ])
@@ -952,7 +956,7 @@ def main(page: ft.Page):
                         border_radius=10,
                         bgcolor=ft.Colors.SURFACE_CONTAINER,
                         content=ft.Row(controls=[
-                            ft.Text("+",margin=ft.Margin(left=15),size=15),
+                            ft.Text("+",margin=ft.Margin(left=15,right=-20),size=15),
                             phone_prefix
                         ])
                     ),
@@ -991,11 +995,11 @@ def main(page: ft.Page):
                     ft.Container(
                         border_radius=10,
                         bgcolor=ft.Colors.SURFACE_CONTAINER,
-                        content=ft.Row(controls=[ft.Text("+", margin=ft.Margin(left=15), size=15), sms_prefix])
+                        content=ft.Row(controls=[ft.Text("+", margin=ft.Margin(left=15,right=-20), size=15), sms_prefix])
                     ),
                     ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=sms_number),
                 ]),
-                ft.Divider(color="grey"),
+                ft.Divider(color="grey", thickness=0.2),
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.MESSAGE_ROUNDED), ft.Text(value="Message", size=20)]),
                 ft.Container(border_radius=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=sms_message),
             ])
@@ -1006,10 +1010,8 @@ def main(page: ft.Page):
 
             location_general_content = ft.Column(visible=False, controls=[
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.PIN_DROP_ROUNDED), ft.Text(value="Coordinates", size=20)]),
-                ft.Row(controls=[
-                    ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lat),
-                    ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lng),
-                ]),
+                ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lat),
+                ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lng),
             ])
 
             # Event (vCalendar/iCal)
@@ -1050,11 +1052,11 @@ def main(page: ft.Page):
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.ACCESS_TIME_ROUNDED), ft.Text(value="Date and time", size=20)]),
                 ft.Container(
                     content=ft.Row(controls=[
-                        ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.Colors.WHITE),
+                        ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.Colors.INVERSE_SURFACE),
                         ft.Container(expand=True,content=ft.Text(
                             value="Please change all fields below here!",
                             size=16,
-                            color=ft.Colors.WHITE
+                            color=ft.Colors.INVERSE_SURFACE
                         )),
                         ],
                     ),
@@ -1086,6 +1088,20 @@ def main(page: ft.Page):
                     ft.Icon(icon=ft.Icons.SHORT_TEXT_ROUNDED),
                     ft.Text(value=("Content"), size=20)
                 ]),
+                ft.Container(
+                    content=ft.Row(controls=[
+                        ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.Colors.INVERSE_SURFACE),
+                        ft.Container(expand=True,content=ft.Text(
+                            value="Remove the 'https://'! To just paste a link, select the 'Text' Type.",
+                            size=16,
+                            color=ft.Colors.INVERSE_SURFACE
+                        )),
+                        ],
+                    ),
+                    padding=15,
+                    bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,
+                    margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
+                ),
                 ft.Row(visible=True,controls=[
                     url_protocol_dropdown,
                     ft.Container(border_radius=10,expand=True,bgcolor=ft.Colors.SURFACE_CONTAINER,content=qr_url_input_field),
@@ -1307,7 +1323,7 @@ def main(page: ft.Page):
             for area in [
                 cb.wifi_area, cb.input_row, cb.url_protocol_dropdown, cb.email_general_content, cb.email_adv_content,
                 cb.phone_general_content, cb.sms_general_content, cb.location_general_content,
-                cb.event_general_content, cb.date_picker_button]:            
+                cb.event_general_content, cb.date_picker_button, cb.input_row.controls[1]]:            
                 area.visible = False
             #Empty everything
             for field in [
@@ -1316,10 +1332,14 @@ def main(page: ft.Page):
                 cb.location_lat, cb.location_lng, cb.event_title, cb.event_location, cb.start_time_picker, cb.end_time_picker]:
 
                 field.value = ""    
+
+            cb.email_adv_checkbox.value = False
+            
             if selected == "WIFI":
                 cb.wifi_area.visible=True
             elif selected == "URL/Link":
                 cb.input_row.visible=True 
+                cb.input_row.controls[1].visible=True 
                 cb.url_protocol_dropdown.visible = True
                 cb.qr_url_input_field.hint_text = "Enter URL here"
                 cb.qr_url_input_field.label = "Enter URL"
@@ -1431,7 +1451,7 @@ def main(page: ft.Page):
             )
         )
 
-        modify_text = ft.Text(value="Modify settings",align=ft.Alignment.CENTER,size=20,color=ft.Colors.WHITE)
+        modify_text = ft.Text(value="Modify settings",align=ft.Alignment.CENTER,size=20,color=ft.Colors.INVERSE_SURFACE)
         clear_text = ft.Text(value="Clear",size=20,color=ft.Colors.RED_400)
         type_icon = ft.Icon(icon=ft.Icons.WIFI_ROUNDED,size=35)
 
@@ -1478,8 +1498,8 @@ def main(page: ft.Page):
             border_width=0,
         )
 
-        email_subject_summary =ft.Text(value="",align=ft.Alignment.CENTER,size=20,color=ft.Colors.WHITE)
-        email_body_summary =ft.Text(value="",align=ft.Alignment.CENTER,size=20,color=ft.Colors.WHITE)
+        email_subject_summary =ft.Text(value="",align=ft.Alignment.CENTER,size=20,color=ft.Colors.PRIMARY)
+        email_body_summary =ft.Text(value="",align=ft.Alignment.CENTER,size=20,color=ft.Colors.PRIMARY)
 
         email_advanced_container = ft.Column(tight=True,controls=[
             #get_content_container("subject",Text(value=email_subject.value,size=20,color=Colors.PRIMARY)),
@@ -1502,7 +1522,7 @@ def main(page: ft.Page):
 
         sms_msg = ft.Text(value="",size=20,color=ft.Colors.PRIMARY)
 
-        sms_container = ft.Column(visible=False,controls=[
+        sms_container = ft.Column(visible=False,tight=True,controls=[
             ft.Text(value="Message",size=15,margin=ft.Margin(bottom=-5),style = ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)),
             ft.Container(border_radius=10,padding=10, bgcolor=ft.Colors.SURFACE_CONTAINER, content=sms_msg),
         ])
@@ -1568,7 +1588,7 @@ def main(page: ft.Page):
                 ),
             ),
             ft.Row(alignment=ft.MainAxisAlignment.CENTER,margin=ft.Margin(top=40),controls=[
-                ft.Container(on_hover=lambda e: handle_modify_hover(e, modify_text,ft.Colors.WHITE,ft.Colors.WHITE),on_click=lambda e:qr_creator_open(),content=modify_text),
+                ft.Container(on_hover=lambda e: handle_modify_hover(e, modify_text,ft.Colors.INVERSE_SURFACE,ft.Colors.INVERSE_SURFACE),on_click=lambda e:qr_creator_open(),content=modify_text),
                 ft.Container(height=20,width=2,bgcolor="grey",margin=ft.Margin(left=5,right=5),content=ft.Text("")),
                 ft.Container(on_hover=lambda e: handle_modify_hover(e, clear_text,ft.Colors.RED_200,ft.Colors.RED_400),on_click=lambda e:clear_summary(),content=clear_text),
             ]),
@@ -1588,7 +1608,7 @@ def main(page: ft.Page):
 
                 ])
             ),
-            extra_vis,
+            #extra_vis,
         ])
 
         def handle_modify_hover(e,element,color=ft.Colors.WHITE,default_color=ft.Colors.PRIMARY):
@@ -1599,14 +1619,16 @@ def main(page: ft.Page):
                 element.color = default_color
                 element.style = None
 
+        appearance_setting = ft.IconButton(icon=ft.Icons.BRIGHTNESS_6_ROUNDED,on_click=lambda e: appearance_swapper())
 
         bmac_button_top_bar = ft.Button(
             icon=ft.Icons.COFFEE_ROUNDED,
             content="Buy me a coffee",
             visible=True,
-            color="yellow",
+            color=ft.Colors.YELLOW_700,
             #bgcolor=ft.Colors.YELLOW_900,
-            icon_color="yellow",
+            icon_color=ft.Colors.YELLOW_700,
+            elevation=0,
             on_click=lambda e:asyncio.ensure_future(open_url("https://buymeacoffee.com/ChoiceZero","BLANK"))
         )
 
@@ -1621,7 +1643,7 @@ def main(page: ft.Page):
                     value="Web",
                     size=11,
                     font_family="MaterialRoundedBold",
-                    color=ft.Colors.WHITE,
+                    color=ft.Colors.INVERSE_SURFACE,
                     style=ft.TextStyle(weight=ft.FontWeight.BOLD)
                 ),
                 border=ft.Border.all(width=3,color=ft.Colors.TERTIARY),
@@ -1631,7 +1653,7 @@ def main(page: ft.Page):
             ft.Row(
                 alignment=ft.MainAxisAlignment.END,
                 controls=[
-                    #appearance_setting,
+                    appearance_setting,
                     bmac_button_top_bar,
                     ft.IconButton(
                         icon=ft.Image("github-white-icon.webp",color=ft.Colors.INVERSE_SURFACE,width=20,height=20),
@@ -1640,6 +1662,7 @@ def main(page: ft.Page):
                     ft.Button(
                         icon=ft.Icons.INFO_OUTLINE_ROUNDED,
                         content="About",
+                        elevation=0,
                         on_click=lambda e: open_about_bs()
                     ),
                 ],
