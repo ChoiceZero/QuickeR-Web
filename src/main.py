@@ -582,20 +582,6 @@ def main(page: ft.Page):
                                 border_radius=30, 
                                 margin=ft.Margin.only(left=0, right=0, top=5, bottom=5)
                             ),
-                            ft.Container(
-                                content=ft.Row(
-                                    tight=True,
-                                    controls=[
-                                        ft.Icon(icon=ft.Icons.COLOR_LENS_ROUNDED, color=ft.Colors.TERTIARY, size=16), 
-                                        ft.Text(value="Material 3", size=12, color=ft.Colors.INVERSE_SURFACE)
-                                    ],
-                                spacing=5,
-                                ), 
-                                padding=10, 
-                                bgcolor=ft.Colors.TERTIARY_CONTAINER, 
-                                border_radius=30, 
-                                margin=ft.Margin.only(left=0, right=0, top=5, bottom=5)
-                            ),
                         ]),
                         ft.Row(alignment="center", controls=ft.Text(value="Help the project", size=18, color=ft.Colors.PRIMARY),margin=ft.Margin.only(left=0, right=0, top=20)),
                         ft.ExpansionTile(
@@ -1413,8 +1399,8 @@ def main(page: ft.Page):
                 text_content.value = cb.event_title.value
                 event_title_summary.value = cb.event_title.value
                 event_location_summary.value = cb.event_location.value
-                event_start_summary.value = cb.start_time_picker.value
-                event_end_summary.value = cb.end_time_picker.value
+                event_start_summary.value = f"{cb.start_time_picker.value.strftime('%H%M%S')}"
+                event_end_summary.value = f"{cb.end_time_picker.value.strftime('%H%M%S')}"
                 extra_vis.visible=True
                 event_summary_container.visible=True
 
@@ -1695,8 +1681,21 @@ def main(page: ft.Page):
         def resize_handler():
             if page.width < 600:
                 bmac_button_top_bar.visible = False
+                top_bar.controls[3].spacing = 3
+                top_bar.controls[3].controls[3] = ft.IconButton(
+                    icon=ft.Icons.INFO_OUTLINE_ROUNDED,
+                    on_click=lambda e: open_about_bs()
+                )
             else:
                 bmac_button_top_bar.visible = True
+                top_bar.controls[3].spacing = 10
+                top_bar.controls[3].controls[3] = ft.Button(
+                    icon=ft.Icons.INFO_OUTLINE_ROUNDED,
+                    content="About",
+                    elevation=0,
+                    on_click=lambda e: open_about_bs()
+                )
+
         resize_handler()
 
         #Initial exec functions
