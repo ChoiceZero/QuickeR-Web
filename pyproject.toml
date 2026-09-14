@@ -9,7 +9,7 @@ authors = [
     { name = "Unax Martinez Llorente (ChoiceZero)", email = "unaxmarti2009@gmail.com" }
 ]
 dependencies = [
-    "flet>=0.85.2",
+    "flet>=0.86.0",
     "flet_color_pickers>=0.85.2",
     "Pillow>=12.2.0",
     "qrcode>=8.2"
@@ -22,6 +22,15 @@ dev = [
     "flet-web>=0.85.2",
     #"watchdog>=4.0.0"
 ]
+
+[tool.flet.boot_screen]
+name = "flet"
+
+[tool.flet.boot_screen.flet]
+spinner_size = 30
+prepare_message = "Preparing your app…"
+startup_message = "Starting up…"
+fade_out_duration = 300
 
 [tool.flet]
 desktop_flavor = "light"    # Change to "full" to use flet-audio and flet-video
