@@ -527,7 +527,7 @@ def main(page: ft.Page):
                                     value="Web",
                                     size=11,
                                     font_family="MaterialRoundedBold",
-                                    color=ft.Colors.INVERSE_SURFACE,
+                                    color=ft.Colors.TERTIARY,
                                     style=ft.TextStyle(weight=ft.FontWeight.BOLD)
                                 ),
                                 border=ft.Border.all(width=3,color=ft.Colors.TERTIARY),
@@ -773,7 +773,7 @@ def main(page: ft.Page):
                                 )
                             ]
                         ),
-                        ft.Row(alignment=ft.MainAxisAlignment.CENTER, controls=[ft.Text(value="Made with ❤️ in Spain.", size=15, color=ft.Colors.GREY_400)]),
+                        ft.Row(alignment=ft.MainAxisAlignment.CENTER, controls=[ft.Text(value="Made with ❤️ in the Basque Country, Spain.", size=15, color=ft.Colors.GREY_400)]),
                         ft.Text(value="© 2026 Unax Martinez Llorente.", size=15, color=ft.Colors.GREY_400),
                         ft.Container(height=50),    
                         ]
@@ -849,6 +849,13 @@ def main(page: ft.Page):
                     content=wifi_name
                 ),
                 ft.Divider(color=ft.Colors.GREY, thickness=0.2),
+                ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
+                    ft.Row(controls=[
+                        ft.Icon(icon=ft.Icons.SHIELD),
+                        ft.Text(value=("WIFI security protocol"), size=20),
+                    ]),
+                    wifi_protocol_dropdown
+                ]),
                 ft.Container(
                     content=ft.Row(controls=[
                         ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED,color=ft.Colors.INVERSE_SURFACE),
@@ -860,16 +867,9 @@ def main(page: ft.Page):
                         ],
                     ),
                     padding=15,
-                    bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,
+                    bgcolor=ft.Colors.SECONDARY_CONTAINER,border_radius=30,
                     margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
                 ),
-                ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
-                    ft.Row(controls=[
-                        ft.Icon(icon=ft.Icons.SHIELD),
-                        ft.Text(value=("WIFI security protocol"), size=20),
-                    ]),
-                    wifi_protocol_dropdown
-                ]),
                 wifi_password_setting
             ])
 
@@ -996,6 +996,17 @@ def main(page: ft.Page):
 
             location_general_content = ft.Column(visible=False, controls=[
                 ft.Row(alignment=ft.MainAxisAlignment.START,controls=[ft.Icon(icon=ft.Icons.PIN_DROP_ROUNDED), ft.Text(value="Coordinates", size=20)]),
+                ft.Container(
+                    content=ft.Row(tight=True, margin=ft.Margin.only(right=7),controls=[
+                        ft.Icon(icon=ft.Icons.INFO_OUTLINE_ROUNDED, color=ft.Colors.INVERSE_SURFACE),
+                        ft.Container(expand=True, content=ft.Text(
+                            value="Please enter the coordinates in decimal format (e.g., 43.03500, -2.77988).",
+                            size=16, color=ft.Colors.INVERSE_SURFACE,
+                        )),
+                    ]),
+                    padding=15, bgcolor=ft.Colors.SECONDARY_CONTAINER, border_radius=30,
+                    margin=ft.Margin.only(left=0, right=0, top=5, bottom=5),
+                ),
                 ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lat),
                 ft.Container(border_radius=10, expand=True, bgcolor=ft.Colors.SURFACE_CONTAINER, content=location_lng),
             ])
@@ -1047,7 +1058,7 @@ def main(page: ft.Page):
                         ],
                     ),
                     padding=15,
-                    bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,
+                    bgcolor=ft.Colors.SECONDARY_CONTAINER,border_radius=30,
                     margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
                 ),
                 ft.Row(wrap=True,alignment=ft.MainAxisAlignment.SPACE_BETWEEN,controls=[
@@ -1085,7 +1096,7 @@ def main(page: ft.Page):
                         ],
                     ),
                     padding=15,
-                    bgcolor=ft.Colors.INVERSE_PRIMARY,border_radius=30,
+                    bgcolor=ft.Colors.SECONDARY_CONTAINER,border_radius=30,
                     margin=ft.Margin.only(left=0, right=0, top=5, bottom=5,)
                 ),
                 ft.Row(visible=True,controls=[
@@ -1629,7 +1640,7 @@ def main(page: ft.Page):
                     value="Web",
                     size=11,
                     font_family="MaterialRoundedBold",
-                    color=ft.Colors.INVERSE_SURFACE,
+                    color=ft.Colors.TERTIARY,
                     style=ft.TextStyle(weight=ft.FontWeight.BOLD)
                 ),
                 border=ft.Border.all(width=3,color=ft.Colors.TERTIARY),
