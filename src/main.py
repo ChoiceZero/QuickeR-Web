@@ -724,6 +724,35 @@ def main(page: ft.Page):
                             ]
                         ),
                     ),
+                    ft.Container(
+                        bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH, 
+                        margin=ft.Margin.only(bottom=5,top=-12),
+                        width=600,
+                        on_click=lambda e: asyncio.ensure_future(open_url("https://github.com/ChoiceZero/QuickeR-Web/blob/main/LICENSE", "BLANK")),
+                        align=ft.Alignment.CENTER,
+                        padding=20,
+                        border_radius=ft.BorderRadius.only(top_left=8, top_right=8, bottom_left=8, bottom_right=8),
+                        content=ft.Row(
+                            controls=[
+                                ft.IconButton(
+                                    disabled=True,
+                                    icon=ft.Icons.BALANCE_ROUNDED,
+                                    style=ft.ButtonStyle(
+                                        shape=ft.CircleBorder(), 
+                                        padding=10, 
+                                        bgcolor=ft.Colors.SECONDARY_CONTAINER, 
+                                        icon_color=ft.Colors.PRIMARY, 
+                                        icon_size=20
+                                    )
+                                ),
+                                ft.Column(spacing=-3,expand=True,controls=[
+                                    ft.Text(value="MIT License", size=20, color=ft.Colors.INVERSE_SURFACE, style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                                    ft.Text(value="View the license terms", size=15, color=ft.Colors.GREY_500, style=ft.TextStyle(weight=ft.FontWeight.W_200)),
+                                ]),
+                                ft.Icon(icon=ft.Icons.OPEN_IN_NEW_ROUNDED, color=ft.Colors.INVERSE_SURFACE, size=20),
+                            ]
+                        ),
+                    ),
                     ft.ExpansionTile(
                         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH, collapsed_bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
                         margin=ft.Margin.only(bottom=5,top=-12),
