@@ -9,10 +9,6 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-env:
-  UV_PYTHON: 3.12
-  FLET_CLI_NO_RICH_OUTPUT: 1
-
 jobs:
   build:
     name: Build web app
@@ -22,51 +18,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          enable-cache: true
+          node-version: 22
+          cache: npm
 
-      - name: Cache uv venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            venv-${{ runner.os }}-
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Cache Flutter SDK
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/flutter
-          key: flutter-3.44.8
-          restore-keys: |
-            flutter-
-
-      - name: Cache pub packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Inject version into app
-        shell: bash
-        run: |
-          VERSION=$(grep -m1 '^version = ' pyproject.toml | cut -d'"' -f2)
-          echo "App version: $VERSION"
-          sed -i "s/__VERSION__/$VERSION/" src/main.py
+      - name: Test
+        run: npm test
 
       - name: Build app
-        shell: bash
-        run: |
-          uv run flet build web --yes --base-url ${GITHUB_REPOSITORY#*/} --route-url-strategy hash
+        run: npm run build
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4.0.0
         with:
-          path: build/web
+          path: dist
           name: web-build-artifact
           retention-days: 20
 

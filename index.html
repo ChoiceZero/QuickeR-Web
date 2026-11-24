@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Create QR codes without accounts, limits, ads or tracking. Everything happens in your browser." />
+    <meta name="theme-color" content="#121212" />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <title>QuickeR</title>
+  </head>
+  <body>
+    <header class="top-app-bar" id="top-app-bar">
+      <a class="brand" href="./" aria-label="QuickeR Web home">
+        <span class="brand-mark"><md-icon data-icon="qrCode2"></md-icon></span>
+        <span class="brand-name">QuickeR</span>
+        <span class="brand-badge">Web</span>
+      </a>
+      <div class="top-app-bar-actions">
+        <md-icon-button id="palette-button" aria-label="Theme color" title="Theme color" aria-haspopup="true">
+          <md-icon data-icon="palette"></md-icon>
+        </md-icon-button>
+        <md-icon-button id="mode-button" aria-label="Switch to dark theme" title="Switch theme">
+          <md-icon data-icon="darkMode"></md-icon>
+        </md-icon-button>
+        <md-icon-button href="https://github.com/ChoiceZero/QuickeR-Web" target="_blank" aria-label="Source code on GitHub" title="Source code on GitHub">
+          <md-icon><span class="github-mark" aria-hidden="true"></span></md-icon>
+        </md-icon-button>
+        <md-text-button class="wide-only" href="https://buymeacoffee.com/ChoiceZero" target="_blank" has-icon>
+          <md-icon slot="icon" data-icon="coffee"></md-icon>
+          Buy me a coffee
+        </md-text-button>
+        <md-filled-tonal-button class="wide-only" id="about-button" has-icon>
+          <md-icon slot="icon" data-icon="info"></md-icon>
+          About
+        </md-filled-tonal-button>
+        <md-icon-button class="narrow-only" id="about-icon-button" aria-label="About" title="About">
+          <md-icon data-icon="info"></md-icon>
+        </md-icon-button>
+      </div>
+    </header>
+
+    <div class="palette-menu" id="palette-menu" role="menu" aria-label="Theme color" hidden></div>
+
+    <main class="page">
+      <section class="intro">
+        <h1>Create a QR code</h1>
+        <p>No accounts, limits, ads or tracking. Your QR code is made right here in your browser.</p>
+      </section>
+
+      <div class="workspace">
+        <div class="editor">
+          <section class="card" aria-labelledby="content-title">
+            <div class="card-header">
+              <h2 id="content-title">Content</h2>
+              <p>Choose what the QR code opens when someone scans it.</p>
+            </div>
+
+            <md-chip-set class="type-chips" id="type-chips" aria-label="QR type">
+              <md-filter-chip data-qr-type="text" label="Text / URL" selected><md-icon slot="icon" data-icon="textFields"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="wifi" label="Wi‑Fi"><md-icon slot="icon" data-icon="wifi"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="email" label="Email"><md-icon slot="icon" data-icon="mail"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="phone" label="Phone"><md-icon slot="icon" data-icon="call"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="location" label="Location"><md-icon slot="icon" data-icon="locationOn"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="sms" label="SMS"><md-icon slot="icon" data-icon="sms"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="event" label="Event"><md-icon slot="icon" data-icon="event"></md-icon></md-filter-chip>
+              <md-filter-chip data-qr-type="contact" label="Contact"><md-icon slot="icon" data-icon="contactPage"></md-icon></md-filter-chip>
+            </md-chip-set>
+
+            <md-divider></md-divider>
+
+            <!-- Text / URL -->
+            <div class="fields" data-type="text">
+              <md-outlined-text-field data-field="text" type="textarea" rows="3" label="Text or link" placeholder="https://example.com" supporting-text="Links open in the browser. Anything else shows as plain text."></md-outlined-text-field>
+            </div>
+
+            <!-- Wi-Fi -->
+            <div class="fields" data-type="wifi" hidden>
+              <md-outlined-text-field data-field="wifiName" label="Network name (SSID)" autocomplete="off"></md-outlined-text-field>
+              <md-outlined-select data-field="wifiSecurity" label="Security" supporting-text="If your network has no password, choose “No password”.">
+                <md-select-option value="WPA2" selected><div slot="headline">WPA2</div></md-select-option>
+                <md-select-option value="WPA"><div slot="headline">WPA</div></md-select-option>
+                <md-select-option value="WEP"><div slot="headline">WEP</div></md-select-option>
+                <md-select-option value="nopass"><div slot="headline">No password</div></md-select-option>
+              </md-outlined-select>
+              <md-outlined-text-field data-field="wifiPassword" data-show-when="wifi-password" label="Password" type="password" autocomplete="off"></md-outlined-text-field>
+            </div>
+
+            <!-- Email -->
+            <div class="fields" data-type="email" hidden>
+              <md-outlined-text-field data-field="emailAddress" label="Email address" type="email" autocomplete="off"></md-outlined-text-field>
+              <label class="switch-row">
+                <span>
+                  <span class="switch-title">Subject and message</span>
+                  <span class="switch-subtitle">Prefill the email the scanner will send</span>
+                </span>
+                <md-switch data-field="emailAdvanced"></md-switch>
+              </label>
+              <md-outlined-text-field data-field="emailSubject" data-show-when="email-advanced" label="Subject"></md-outlined-text-field>
+              <md-outlined-text-field data-field="emailBody" data-show-when="email-advanced" label="Message" type="textarea" rows="3"></md-outlined-text-field>
+            </div>
+
+            <!-- Phone -->
+            <div class="fields" data-type="phone" hidden>
+              <div class="field-row">
+                <md-outlined-text-field class="prefix-field" data-field="phonePrefix" label="Code" prefix-text="+" type="tel" inputmode="numeric" placeholder="34"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="phoneNumber" label="Phone number" type="tel"></md-outlined-text-field>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="fields" data-type="location" hidden>
+              <p class="hint">Enter the coordinates in decimal format, for example 43.03500, -2.77988.</p>
+              <div class="field-row">
+                <md-outlined-text-field class="grow" data-field="latitude" label="Latitude" inputmode="decimal" placeholder="43.03500"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="longitude" label="Longitude" inputmode="decimal" placeholder="-2.77988"></md-outlined-text-field>
+              </div>
+              <div>
+                <md-outlined-button id="locate-button" has-icon>
+                  <md-icon slot="icon" data-icon="myLocation"></md-icon>
+                  Use my location
+                </md-outlined-button>
+              </div>
+            </div>
+
+            <!-- SMS -->
+            <div class="fields" data-type="sms" hidden>
+              <div class="field-row">
+                <md-outlined-text-field class="prefix-field" data-field="smsPrefix" label="Code" prefix-text="+" type="tel" inputmode="numeric" placeholder="34"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="smsNumber" label="Phone number" type="tel"></md-outlined-text-field>
+              </div>
+              <md-outlined-text-field data-field="smsMessage" label="Message" type="textarea" rows="3"></md-outlined-text-field>
+            </div>
+
+            <!-- Event -->
+            <div class="fields" data-type="event" hidden>
+              <md-outlined-text-field data-field="eventTitle" label="Event title"></md-outlined-text-field>
+              <md-outlined-text-field data-field="eventLocation" label="Location name"></md-outlined-text-field>
+              <div class="field-row">
+                <md-outlined-text-field class="grow" data-field="eventStart" label="Starts" type="datetime-local"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="eventEnd" label="Ends" type="datetime-local"></md-outlined-text-field>
+              </div>
+            </div>
+
+            <!-- Contact (vCard) -->
+            <div class="fields" data-type="contact" hidden>
+              <p class="hint">A first or last name is required. Every other field is optional.</p>
+              <h3 class="field-group-title">Name</h3>
+              <div class="field-row">
+                <md-outlined-text-field class="grow" data-field="contactFirstName" label="First name" autocomplete="off"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="contactLastName" label="Last name" autocomplete="off"></md-outlined-text-field>
+              </div>
+              <h3 class="field-group-title">Work</h3>
+              <div class="field-row">
+                <md-outlined-text-field class="grow" data-field="contactOrg" label="Organization"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="contactJobTitle" label="Job title"></md-outlined-text-field>
+              </div>
+              <h3 class="field-group-title">Phone, email and website</h3>
+              <div class="field-row">
+                <md-outlined-text-field class="prefix-field" data-field="contactPhonePrefix" label="Code" prefix-text="+" type="tel" inputmode="numeric" placeholder="34"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="contactPhoneNumber" label="Phone number" type="tel"></md-outlined-text-field>
+              </div>
+              <div class="field-row">
+                <md-outlined-text-field class="grow" data-field="contactEmail" label="Email address" type="email"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="contactWebsite" label="Website" type="url"></md-outlined-text-field>
+              </div>
+              <h3 class="field-group-title">Address</h3>
+              <md-outlined-text-field data-field="contactStreet" label="Street"></md-outlined-text-field>
+              <div class="field-row">
+                <md-outlined-text-field class="grow" data-field="contactCity" label="City"></md-outlined-text-field>
+                <md-outlined-text-field class="grow" data-field="contactPostal" label="Postal code"></md-outlined-text-field>
+              </div>
+              <md-outlined-text-field data-field="contactCountry" label="Country"></md-outlined-text-field>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="style-title">
+            <div class="card-header">
+              <h2 id="style-title">Style</h2>
+              <p>Pick the colors, add a logo and choose how resilient the code is.</p>
+            </div>
+
+            <div class="setting">
+              <div class="setting-label">
+                <span class="setting-title">Foreground</span>
+                <span class="setting-value" id="foreground-value">#000000</span>
+              </div>
+              <div class="swatches" id="foreground-swatches" role="radiogroup" aria-label="Foreground color"></div>
+            </div>
+
+            <div class="setting">
+              <div class="setting-label">
+                <span class="setting-title">Background</span>
+                <span class="setting-value" id="background-value">#FFFFFF</span>
+              </div>
+              <div class="swatches" id="background-swatches" role="radiogroup" aria-label="Background color"></div>
+            </div>
+
+            <md-divider></md-divider>
+
+            <div class="setting">
+              <div class="setting-label">
+                <span class="setting-title">Logo</span>
+              </div>
+              <div class="logo-row">
+                <div class="logo-thumb" id="logo-thumb" aria-hidden="true">
+                  <md-icon data-icon="addPhotoAlternate"></md-icon>
+                </div>
+                <div class="logo-text">
+                  <span class="logo-name" id="logo-name">No logo</span>
+                  <span class="logo-help">PNG, JPG, WebP or SVG. Square images work best.</span>
+                </div>
+                <md-outlined-button id="logo-button" has-icon>
+                  <md-icon slot="icon" data-icon="addPhotoAlternate"></md-icon>
+                  Upload
+                </md-outlined-button>
+                <md-icon-button id="logo-remove" aria-label="Remove logo" title="Remove logo" hidden>
+                  <md-icon data-icon="delete"></md-icon>
+                </md-icon-button>
+                <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+              </div>
+              <div class="banner warning" id="logo-warning" hidden>
+                <md-icon data-icon="warning"></md-icon>
+                <span>Logos cover part of the code, so scanning gets harder. Error correction is raised to H, but scanning can't be guaranteed.</span>
+              </div>
+            </div>
+
+            <md-divider></md-divider>
+
+            <div class="setting">
+              <md-outlined-select id="error-correction" label="Error correction" supporting-text="Higher levels survive damage better but make the code denser.">
+                <md-select-option value="L"><div slot="headline">L · 7%</div></md-select-option>
+                <md-select-option value="M" selected><div slot="headline">M · 15%</div></md-select-option>
+                <md-select-option value="Q"><div slot="headline">Q · 25%</div></md-select-option>
+                <md-select-option value="H"><div slot="headline">H · 30%</div></md-select-option>
+              </md-outlined-select>
+            </div>
+          </section>
+        </div>
+
+        <aside class="preview card" aria-labelledby="preview-title">
+          <div class="preview-header">
+            <h2 id="preview-title">Preview</h2>
+            <span class="status-chip" id="status-chip" hidden></span>
+          </div>
+
+          <div class="qr-frame" id="qr-frame">
+            <div class="qr-placeholder" id="qr-placeholder">
+              <md-icon data-icon="qrCode2"></md-icon>
+              <span>Your QR code will appear here</span>
+            </div>
+          </div>
+
+          <md-outlined-text-field id="name-field" label="Name your QR code" placeholder="quicker-qr" supporting-text="Used as the file name"></md-outlined-text-field>
+
+          <div class="preview-actions">
+            <md-filled-button id="download-button" has-icon>
+              <md-icon slot="icon" data-icon="download"></md-icon>
+              Download PNG
+            </md-filled-button>
+            <md-text-button id="reset-button" has-icon>
+              <md-icon slot="icon" data-icon="restartAlt"></md-icon>
+              Start over
+            </md-text-button>
+          </div>
+
+          <md-divider></md-divider>
+
+          <dl class="summary" id="summary"></dl>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="page-footer">
+      <span class="footer-privacy"><md-icon data-icon="visibilityOff"></md-icon>No telemetry, analytics or data collection.</span>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://github.com/ChoiceZero/QuickeR-Web" target="_blank" rel="noopener">Source code</a>
+        <a href="https://github.com/ChoiceZero/QuickeR-Web/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        <a href="https://github.com/ChoiceZero/QuickeR/issues" target="_blank" rel="noopener">Report a bug</a>
+      </nav>
+    </footer>
+
+    <md-dialog id="about-dialog" class="about-dialog">
+      <div slot="headline" class="about-headline">
+        <span class="brand-mark large"><md-icon data-icon="qrCode2"></md-icon></span>
+        <span class="about-title">QuickeR <span class="brand-badge">Web</span></span>
+        <span class="about-tagline">Your QRs, made quicker</span>
+      </div>
+      <form slot="content" id="about-form" method="dialog" class="about-content">
+        <div class="about-chips">
+          <span class="info-chip"><md-icon data-icon="balance"></md-icon>MIT</span>
+          <span class="info-chip"><md-icon data-icon="tune"></md-icon><span id="about-version"></span></span>
+          <span class="info-chip"><md-icon data-icon="person"></md-icon>ChoiceZero</span>
+        </div>
+
+        <h3 class="list-title">Help the project</h3>
+        <md-list class="about-list">
+          <md-list-item type="link" href="https://www.buymeacoffee.com/choicezero" target="_blank">
+            <md-icon slot="start" data-icon="coffee"></md-icon>
+            <div slot="headline">Buy Me a Coffee</div>
+            <div slot="supporting-text">One-time donation</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+          <md-list-item type="link" href="https://github.com/sponsors/ChoiceZero" target="_blank">
+            <md-icon slot="start" data-icon="favoriteFill"></md-icon>
+            <div slot="headline">GitHub Sponsors</div>
+            <div slot="supporting-text">Support the project and help it grow</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+          <md-list-item type="link" href="https://github.com/ChoiceZero/QuickeR/issues" target="_blank">
+            <md-icon slot="start" data-icon="bugReport"></md-icon>
+            <div slot="headline">Report a bug</div>
+            <div slot="supporting-text">Help improve the project as a community</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+          <md-list-item type="button" id="share-item">
+            <md-icon slot="start" data-icon="share"></md-icon>
+            <div slot="headline">Share the app</div>
+            <div slot="supporting-text">Copy the link to your clipboard</div>
+            <md-icon slot="end" data-icon="contentCopy"></md-icon>
+          </md-list-item>
+        </md-list>
+
+        <h3 class="list-title">About</h3>
+        <md-list class="about-list">
+          <md-list-item type="link" href="https://github.com/ChoiceZero/QuickeR" target="_blank">
+            <md-icon slot="start" data-icon="star"></md-icon>
+            <div slot="headline">QuickeR App</div>
+            <div slot="supporting-text">Check out the cross-platform app</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+          <md-list-item type="link" href="https://github.com/ChoiceZero/QuickeR-Web" target="_blank">
+            <md-icon slot="start" data-icon="code"></md-icon>
+            <div slot="headline">GitHub repository</div>
+            <div slot="supporting-text">Source code, bugs and release notes</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+          <md-list-item type="link" href="https://github.com/ChoiceZero" target="_blank">
+            <md-icon slot="start" data-icon="person"></md-icon>
+            <div slot="headline">Unax Martinez Llorente</div>
+            <div slot="supporting-text">Developer (aka ChoiceZero)</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+          <md-list-item type="link" href="https://github.com/ChoiceZero/QuickeR-Web/blob/main/LICENSE" target="_blank">
+            <md-icon slot="start" data-icon="balance"></md-icon>
+            <div slot="headline">MIT License</div>
+            <div slot="supporting-text">View the license terms</div>
+            <md-icon slot="end" data-icon="openInNew"></md-icon>
+          </md-list-item>
+        </md-list>
+
+        <h3 class="list-title">Privacy</h3>
+        <ul class="privacy-list">
+          <li><md-icon data-icon="visibilityOff"></md-icon><span><strong>Private.</strong> No telemetry or analytics are used.</span></li>
+          <li><md-icon data-icon="code"></md-icon><span><strong>Open source.</strong> Fully open source and auditable.</span></li>
+          <li><md-icon data-icon="verifiedUser"></md-icon><span><strong>Personal.</strong> No private data is collected or stored.</span></li>
+        </ul>
+
+        <p class="about-footer">Made with ❤️ in the Basque Country, Spain.<br />© 2026 Unax Martinez Llorente.</p>
+      </form>
+      <div slot="actions">
+        <md-text-button form="about-form" value="close">Close</md-text-button>
+      </div>
+    </md-dialog>
+
+    <div class="snackbar" id="snackbar" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

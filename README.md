@@ -27,23 +27,31 @@ QuickeR-Web is a platform that lets you create QR codes but without accounts, li
 | Email                         | ✅        |
 | Location                      | ✅        |
 | Event                         | ✅        |
+| Contact (vCard)               | ✅        |
 
 - Allows to place logos in the center of the QR.
 - Allows to change the colors of the QRs.
 
-> [!WARNING] 
-> Due to c based tools (such as OpenCV or Pyztools) not being supported on WASM, readability checking is not available.
+- Checks that the QR can actually be scanned and warns about low-contrast colors.
 
 - Has a preview that updates on every change.
 - Downloads the codes.
 - Has a summary view before downloading the QR code.
-- Uses a Material3-like user interface.
+- Uses a Material 3 user interface built with Google's Material Web components and dynamic color.
 ## Tech Stack
 
-**Python moules:** Flet, Qrcode, Pillow and other libraries that base Python includes.
+**Language:** TypeScript, built with Vite.
 
-**Actually running the code:** Flutter, Dart.
+**Libraries:** Material Web and Material Color Utilities for the UI, `qrcode` to encode, `jsQR` to check readability.
 
+## Development
+
+```bash
+npm install
+npm run dev     # local server with hot reload
+npm test        # unit tests for the QR payload encoders
+npm run build   # production build in dist/
+```
 
 ## License
 
